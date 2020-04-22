@@ -28,6 +28,11 @@ module.exports = {
     }
 
     if(!origin || !clientId || !tokenJwt || clientId !== keys.crowdinClientId) {
+      console.log(origin);
+      console.log(clientId);
+      console.log(tokenJwt);
+      console.log(keys.crowdinClientId);
+
       return res.status(401).send('No origin');
     }
 
@@ -37,7 +42,7 @@ module.exports = {
       } else {
         req.session.crowdin = JSON.stringify({origin, clientId, tokenJwt});
         res.origin = decoded;
-        res.clientId = `${res.origin.domain}__${res.origin.context.project_id}`;
+        res.clientId = `${res.origin.domain}__${res.origin.context.project_id}__${res.origin.sub}`;
         return next();
       }
     });

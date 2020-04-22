@@ -10,7 +10,7 @@ const nodeTypes = helper.nodeTypes;
 
 
 // Database structure Integration table
-const Integration = db.define('Integration', {
+const Integration = db.define('integration', {
   uid: {
     type: Sequelize.STRING,
     allowNull: false,
@@ -19,13 +19,34 @@ const Integration = db.define('Integration', {
   integrationToken: {
     type: Sequelize.STRING(10000),
   },
-  integrationRefreshToken: {
+  integrationApiUrl: {
     type: Sequelize.STRING(10000),
-  },
-  integrationTokenExpiresIn: {
-    type: Sequelize.STRING,
-  },
+  }
 });
+
+Integration.Login = () => (req, res) => {
+  const url = req.body.url;
+  const token = req.body.token;
+
+  const { encryptData, decryptData, catchRejection, nodeTypes } = require('./../helpers');
+  const integrationUid = `${res.origin.domain}__${res.origin.context.project_id}__${res.origin.sub}`;
+  Integration.findOne({where: {uid: integrationUid}})
+    .then((integration) => {
+      let params = {
+        integrationToken: encryptData(token),
+        integrationApiUrl: url,
+      };
+      if(integration) {
+        return integration.update(params);
+      } else {
+        params.uid = integrationUid;
+        return Integration.create(params);
+      };
+      
+    })
+    .then(() => res.status(204).send())
+    .catch(catchRejection('Cant update token', res))
+};
 
 Integration.getApiClient = function (req, res) {
   return Integration.findOne({where: {uid: req.user.uid}})

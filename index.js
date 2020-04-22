@@ -45,7 +45,7 @@ app.get('/manifest.json', (req, res) =>
 app.get('/status', middleware.requireAuthentication, (req, res) =>
   res.json({isInstalled: !!req.session.crowdin, isLoggedIn: !!req.user}));
 
-app.get('/integration-login', passportSetup.auth());
+  app.post('/integration-login', middleware.requireAuthentication, Integration.Login());
 
 app.get('/integration-log-out', middleware.requireAuthentication, (req, res) => {
   req.logout();

@@ -52,12 +52,16 @@
   <crowdin-simple-integration>
   </crowdin-simple-integration>
 </template>
+
 <template id="login">
   <div class="center">
     <div>
       <crowdin-card is-shadowed is-padding-lg class="login">
         <img alt='Integration logo' src='/assets/logo.svg'/>
-        <crowdin-h4 id="integration-name">Integration name</crowdin-h4>
+        <crowdin-h4 id="integration-name">Contentful </crowdin-h4>
+        <crowdin-input id="apiurl" label="Document360 API URL" help-text="You need create some api key and url on ...." value="https://apihub.document360.io/v1/"></crowdin-input>
+        <crowdin-input id="apitoken" label="Document360 API Token" help-text="You need create some api key and url on ...." value="51xI6pLagkrhBUM9QQOE6pbuFlmTlU2OISYzwaPigYqanxKcch9B7phOBokNoiN+DtVuOOMirTnJrvEQfqHxFErRQL6LlXqHZOfShqN+CtlWSGtD2ZyOmnElZAgu36hSJDpdx0avV4b0JlsdC/gdEg=="></crowdin-input>
+        <br />
         <crowdin-button
             outlined
             icon-after="arrow_forward"
@@ -70,6 +74,7 @@
     </div>
   </div>
 </template>
+
 <div class='i_w'>
   <div class="center">
     <div>
@@ -218,10 +223,13 @@
 
   function getLoginTemplate() {
     let login = document.querySelector('#login').content.cloneNode(true);
+       
     document.querySelector('.i_w').innerHTML = '';
     login.querySelector('crowdin-h4').innerHTML = manifest.name;
     login.querySelector('crowdin-button').innerHTML = `LOG IN WITH ${manifest.name}`;
     document.querySelector('.i_w').appendChild(login);
+
+    console.log(login.querySelector('crowdin-button'));
   }
 
   function isInstalled() {
@@ -234,11 +242,11 @@
       })
       .then((res) => {
         if(!res.isInstalled) {
-          document.querySelector('.i_w .center div').innerHTML =
-            `<h1>Looks like ${manifest.name} is not installed yet!</h1>
-                        <p>Contact your organization administrator to install it. More info on <a href='https://support.crowdin.com'>Link to how to install</a></p>`;
+          document.querySelector('.i_w .center').innerHTML =
+            `<div><h1>Looks like ${manifest.name} is not installed yet!</h1>
+                        <p>Contact your organization administrator to install it. More info on <a href='https://support.crowdin.com'>Link to how to install</a></p></div>`;
         } else if(!res.isLoggedIn) {
-          getLoginTemplate();
+            getLoginTemplate();
         } else {
           let el = document.querySelector('.i_w');
           let template = document.getElementById('integration');
@@ -255,10 +263,24 @@
   isInstalled();
 
   function integrationLogin() {
-    const left = screen.width / 2 - 300;
-    const top = screen.height / 2 - 350;
-    const config = 'toolbar=no, menubar=no, width=600, height=700, top=' + top + ', left=' + left;
-    window.open('/integration-login', manifest.name, config);
+    const url = document.querySelector('#apiurl').getAttribute('value');
+    const token = document.querySelector('#apitoken').getAttribute('value');    
+    checkOrigin()
+      .then(restParams => {
+        return fetch('/integration-login' + restParams, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({url, token})
+        });
+      })
+      .then((response) => {
+        return checkResponse(response);
+      })
+      .then((res) => {
+        isInstalled();
+      }).catch(e => {
+      catchRejection(e, 'Can\'t fetch integration login url');
+    });
   }
 
   window.addEventListener('message', handleMessage);
