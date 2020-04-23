@@ -33,7 +33,8 @@ app.use(cookieSession({
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use(express.static('polyfills'));
+//app.use(express.static('polyfills'));
+app.use("/polyfills", express.static(__dirname + '/polyfills'));
 
 app.get('/assets/logo.svg', (req, res) => res.sendFile(__dirname + '/assets/logo.svg'));
 
