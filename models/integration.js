@@ -49,15 +49,15 @@ Integration.Login = () => (req, res) => {
 };
 
 Integration.getApiClient = function (req, res) {
-  return Integration.findOne({where: {uid: req.user.uid}})
+  
+  return Integration.findOne({where: {uid: res.clientId}})
     .then((integration) => {
       if(!integration) {
         // if we don't find Integration, we can't create Integration API client. Exit
         return res.status(404).send();
       }
-
       // initialize Integration API client and connect it to response object
-      res.integrationClient = new Mailchimp(decryptData(integration.integrationToken));
+      res.itntegrationCredentials = {url: integration.integrationApiUrl, token: decryptData(integration.integrationToken)}
 
       return new Promise (resolve => resolve());
     })
@@ -65,8 +65,12 @@ Integration.getApiClient = function (req, res) {
 
 // Get date from integration
 Integration.getData = () => (req, res) => {
+
+  console.log(req);
+  
+
   const mailChimpApi = res.integrationClient; // Destruct integration client from response
-  let files = [];
+  let files = ["sample.txt"];
 
   // Define root elements for integration
   let roots = {

@@ -70,49 +70,49 @@ Organization.getProjectFiles = () => (req, res) => {
   let files = [];
   const projectId = res.origin.context.project_id;
 // -------------------- Start get files with mapping ---------------------------------
-  Mapping.getFilesByDomainProjectId(res)
-    .then(uploadedFiles => {
-      if(!uploadedFiles || !uploadedFiles.length){
-        // We haven't uploaded files yet, it's ok return empty array
-        res.json([]);
-      }
-      // Get each uploaded file with Crowdin API
-      return Promise.all(uploadedFiles.map(f =>
-        res.crowdinApiClient.sourceFilesApi.getFile(projectId, f.crowdinFileId)
-          .catch(e => ({})) // it's ok if we can't get some file, it can be removed from Crowdin
-      ))
-    })
-    .then(filesRes => { // Get array responses with files
-      files = filesRes.filter(fr => !!fr.data) // Exclude responses without file data
-        .map(({data}) => data) // Remove useless nesting
-        .map(({directoryId, branchId, name, title, ...rest}) => ({
-          // Normalize file data to UI requirements
-          ...rest,
-          name: title || name,
-          title: title ? name : undefined,
-          node_type: nodeTypes.FILE,
-          parent_id: '0' // all uploaded files come to root directory
-        }));
-      res.json(files);
-    })
-    .catch(catchRejection('Cant fetch data from Crowdin', res))
+  // Mapping.getFilesByDomainProjectId(res)
+  //   .then(uploadedFiles => {
+  //     if(!uploadedFiles || !uploadedFiles.length){
+  //       // We haven't uploaded files yet, it's ok return empty array
+  //       res.json([]);
+  //     }
+  //     // Get each uploaded file with Crowdin API
+  //     return Promise.all(uploadedFiles.map(f =>
+  //       res.crowdinApiClient.sourceFilesApi.getFile(projectId, f.crowdinFileId)
+  //         .catch(e => ({})) // it's ok if we can't get some file, it can be removed from Crowdin
+  //     ))
+  //   })
+  //   .then(filesRes => { // Get array responses with files
+  //     files = filesRes.filter(fr => !!fr.data) // Exclude responses without file data
+  //       .map(({data}) => data) // Remove useless nesting
+  //       .map(({directoryId, branchId, name, title, ...rest}) => ({
+  //         // Normalize file data to UI requirements
+  //         ...rest,
+  //         name: title || name,
+  //         title: title ? name : undefined,
+  //         node_type: nodeTypes.FILE,
+  //         parent_id: '0' // all uploaded files come to root directory
+  //       }));
+  //     res.json(files);
+  //   })
+  //   .catch(catchRejection('Cant fetch data from Crowdin', res))
 // --------------------- End get files with mapping -------------------------------
 // --------------------  Start get all files without mapping from Crowdin ---------
-    // Promise.all([
-    //   res.crowdinApiClient.sourceFilesApi.listProjectDirectories(projectId, undefined, undefined, 500),
-    //   res.crowdinApiClient.sourceFilesApi.listProjectFiles(projectId, undefined, undefined, 500),
-    //   res.crowdinApiClient.sourceFilesApi.listProjectBranches(projectId, undefined, 500)
-    // ])
-    //   .then(responses => {
-    //     files.push(...responses[0].data.map(({data}) => ({...data, node_type: '0'})));
-    //     files.push(...responses[1].data.map(({data}) => data));
-    //     files.push(...responses[2].data.map(({data}) => ({...data, node_type: '2'})));
-    //     res.json(files.map(({directoryId, branchId, ...rest}) => ({
-    //       ...rest,
-    //       parent_id: directoryId || branchId || 0
-    //     })));
-    //   })
-    //   .catch(e => reject('Cant fetch data from Crowdin', e));
+    Promise.all([
+      res.crowdinApiClient.sourceFilesApi.listProjectDirectories(projectId, undefined, undefined, 500),
+      res.crowdinApiClient.sourceFilesApi.listProjectFiles(projectId, undefined, undefined, 500),
+      res.crowdinApiClient.sourceFilesApi.listProjectBranches(projectId, undefined, 500)
+    ])
+      .then(responses => {
+        files.push(...responses[0].data.map(({data}) => ({...data, node_type: '0'})));
+        files.push(...responses[1].data.map(({data}) => data));
+        files.push(...responses[2].data.map(({data}) => ({...data, node_type: '2'})));
+        res.json(files.map(({directoryId, branchId, ...rest}) => ({
+          ...rest,
+          parent_id: directoryId || branchId || 0
+        })));
+      })
+      .catch(e => reject('Cant fetch data from Crowdin', e));
 // --------------------- End get all files from Crowdin without mapping --------------
 };
 
