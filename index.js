@@ -19,6 +19,9 @@ const Organization = require('./models/organization');
 
 const app = express();
 
+const helper = require('./helpers');
+const catchRejection = helper.catchRejection;
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 
@@ -43,8 +46,28 @@ app.get('/', middleware.requireAuthentication, (req, res) => res.sendFile(__dirn
 app.get('/manifest.json', (req, res) =>
   res.json(_.pick(config, 'identifier', 'name', 'baseUrl', 'authentication', 'events', 'scopes', 'modules')));
 
-app.get('/status', middleware.requireAuthentication, (req, res) =>
-  res.json({isInstalled: !!req.session.crowdin, isLoggedIn: !!req.user}));
+// app.get('/status', middleware.requireAuthentication, (req, res) =>
+// {
+//   console.log("User: "+req.user);
+//   console.log("Installed:"+req.session.crowdin);
+
+//   res.json({isInstalled: !!req.session.crowdin, isLoggedIn: !!req.user})
+// });
+
+app.get('/status', middleware.requireAuthentication, (req, res) => {
+  let status = {isInstalled: false, isLoggedIn: false};
+  console.log("org_uid:"+res.origin.domain); console.log("int_uid:"+res.clientId);
+  Organization.findOne({where: {uid: res.origin.domain}})
+    .then(organization => {
+      status.isInstalled = !!organization;
+      return Integration.findOne({where: {uid: res.clientId}})
+    })
+    .then(integration => {
+      status.isLoggedIn = !!integration;
+      return res.json(status);
+    })
+    .catch(catchRejection('Some problem to fetch organization or integration', res))
+  });
 
   app.post('/integration-login', middleware.requireAuthentication, Integration.Login());
 
