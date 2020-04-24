@@ -1,4 +1,3 @@
-const Mailchimp = require('mailchimp-api-v3');
 const Sequelize = require('sequelize');
 
 const helper = require('../helpers');
@@ -11,6 +10,8 @@ const catchRejection = helper.catchRejection;
 const decryptData = helper.decryptData;
 const nodeTypes = helper.nodeTypes;
 
+let projectVersionId = ''
+let d360Instance = ''
 
 // Database structure Integration table
 const Integration = db.define('integration', {
@@ -27,51 +28,48 @@ const Integration = db.define('integration', {
   }
 });
 
-//axios instance
-let instance = ''
-
 Integration.Login = () => (req, res) => {
   const url = req.body.url;
   const token = req.body.token;
 
   const { encryptData, decryptData, catchRejection, nodeTypes } = require('./../helpers');
   const integrationUid = `${res.origin.domain}__${res.origin.context.project_id}__${res.origin.sub}`;
-  Integration.findOne({where: {uid: integrationUid}})
+  Integration.findOne({ where: { uid: integrationUid } })
     .then((integration) => {
       let params = {
         integrationToken: encryptData(token),
         integrationApiUrl: url,
       };
-      if(integration) {
+      if (integration) {
         return integration.update(params);
       } else {
         params.uid = integrationUid;
         return Integration.create(params);
       };
-      
+
     })
     .then(() => res.status(204).send())
     .catch(catchRejection('Cant update token', res))
 };
 
 Integration.getApiClient = function (req, res) {
-  
-  return Integration.findOne({where: {uid: res.clientId}})
+
+  return Integration.findOne({ where: { uid: res.clientId } })
     .then((integration) => {
-      if(!integration) {
+      if (!integration) {
         // if we don't find Integration, we can't create Integration API client. Exit
         return res.status(404).send();
       }
       // initialize Integration API client and connect it to response object
-      res.itntegrationCredentials = {url: integration.integrationApiUrl, token: decryptData(integration.integrationToken)}
+      res.itntegrationCredentials = { url: integration.integrationApiUrl, token: decryptData(integration.integrationToken) }
 
       //instance initialization for axios
-      instance = axios.create({
+      d360Instance = axios.create({
         baseURL: integration.integrationApiUrl,
-        headers: {'Content-Type': 'application/json', 'api_token': decryptData(integration.integrationToken)}
+        headers: { 'Content-Type': 'application/json', 'api_token': decryptData(integration.integrationToken) }
       });
 
-      return new Promise (resolve => resolve());
+      return new Promise(resolve => resolve());
     })
 };
 
@@ -84,7 +82,7 @@ Integration.getData = () => (req, res) => {
   // Define root elements for integration
   let roots = {
     'Project': 'data',
-  };  
+  };
 
   // Convert root elements to Folders, for future use in integration web component
   files.push(...Object.keys(roots).map(t => ({
@@ -93,32 +91,31 @@ Integration.getData = () => (req, res) => {
     parent_id: 0,
     node_type: nodeTypes.FOLDER,
   })));
-  
-  // Get records for each root element
-  Promise.all(Object.keys(roots).map(t =>
-    //mailChimpApi.get({path: `/${t}`, query: {count: 1000, offset: 0}})
-    //instance.get('/ProjectVersions/b228fd62-08d1-4908-8259-c4b893a681d3/categories')
-    instance.get('/ProjectVersions/b228fd62-08d1-4908-8259-c4b893a681d3/articles')
-    //instance.get('/ProjectVersions')
-  ))
-    .then(responses => { // get responses for each root element
 
-      responses.forEach((r, index) => { // Get records from each response
-        console.log(r[roots[Object.keys(roots)[index]]]);   
-        
-        files.push( // Push records as files to main files array
-          ...r[roots[Object.keys(roots)[index]]].data.map(f => ({  // Extract exact records array from full response object
-          ...f,
-          node_type: nodeTypes.FILE,
-          type: 'html', // we upload source file as HTML in this integration, type used for file icon on UI
-          name: f.name || (f.settings || {}).title || f.id,
-          parent_id: Object.keys(roots)[index], // Set file parent_id to roots folder used to group records
-        })))
-
-      });
-      res.send(files);
+  d360Instance.get('/ProjectVersions')
+    .then(function (res) {
+      projectVersionId = res.data.data[0].id;
     })
-    .catch(catchRejection('Cant fetch integration data', res));
-};
-
+    .then(() => {
+      // Get records for each root element
+      Promise.all(Object.keys(roots).map(t =>
+        d360Instance.get(`/ProjectVersions/${projectVersionId}/articles`)
+      ))
+        .then(responses => { // get responses for each root element
+          responses.forEach((r, index) => { // Get records from each response
+            console.log(r[roots[Object.keys(roots)[index]]]);
+            files.push( // Push records as files to main files array
+              ...r[roots[Object.keys(roots)[index]]].data.map(f => ({  // Extract exact records array from full response object
+                ...f,
+                node_type: nodeTypes.FILE,
+                type: 'html', // we upload source file as HTML in this integration, type used for file icon on UI
+                name: f.name || (f.settings || {}).title || f.slug,
+                parent_id: Object.keys(roots)[index], // Set file parent_id to roots folder used to group records
+              })))
+          });
+          res.send(files);
+        })
+        .catch(catchRejection('Cant fetch integration data', res));
+    });
+}
 module.exports = Integration;
