@@ -56,7 +56,7 @@ app.get('/manifest.json', (req, res) =>
 
 app.get('/status', middleware.requireAuthentication, (req, res) => {
   let status = {isInstalled: false, isLoggedIn: false};
-  console.log("org_uid:"+res.origin.domain); console.log("int_uid:"+res.clientId);
+
   Organization.findOne({where: {uid: res.origin.domain}})
     .then(organization => {
       status.isInstalled = !!organization;

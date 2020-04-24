@@ -4,6 +4,9 @@ const Sequelize = require('sequelize');
 const helper = require('../helpers');
 const db = require('../db_connect');
 
+//axios package
+const axios = require('axios');
+
 const catchRejection = helper.catchRejection;
 const decryptData = helper.decryptData;
 const nodeTypes = helper.nodeTypes;
@@ -23,6 +26,9 @@ const Integration = db.define('integration', {
     type: Sequelize.STRING(10000),
   }
 });
+
+//axios instance
+let instance = ''
 
 Integration.Login = () => (req, res) => {
   const url = req.body.url;
@@ -59,6 +65,12 @@ Integration.getApiClient = function (req, res) {
       // initialize Integration API client and connect it to response object
       res.itntegrationCredentials = {url: integration.integrationApiUrl, token: decryptData(integration.integrationToken)}
 
+      //instance initialization for axios
+      instance = axios.create({
+        baseURL: integration.integrationApiUrl,
+        headers: {'Content-Type': 'application/json', 'api_token': decryptData(integration.integrationToken)}
+      });
+
       return new Promise (resolve => resolve());
     })
 };
@@ -66,16 +78,13 @@ Integration.getApiClient = function (req, res) {
 // Get date from integration
 Integration.getData = () => (req, res) => {
 
-  console.log(req);
-  
-
   const mailChimpApi = res.integrationClient; // Destruct integration client from response
-  let files = ["sample.txt"];
+  let files = [];
 
   // Define root elements for integration
   let roots = {
-    'campaigns': 'campaigns',
-  };
+    'data': 'data',
+  };  
 
   // Convert root elements to Folders, for future use in integration web component
   files.push(...Object.keys(roots).map(t => ({
@@ -84,12 +93,17 @@ Integration.getData = () => (req, res) => {
     parent_id: 0,
     node_type: nodeTypes.FOLDER,
   })));
+  
 
   // Get records for each root element
   Promise.all(Object.keys(roots).map(t =>
-    mailChimpApi.get({path: `/${t}`, query: {count: 1000, offset: 0}})
+    //mailChimpApi.get({path: `/${t}`, query: {count: 1000, offset: 0}})
+    instance.get('/ProjectVersions')
   ))
     .then(responses => { // get responses for each root element
+
+      //console.log(responses[0].data.data[0]);
+
       responses.forEach((r, index) => { // Get records from each response
         files.push( // Push records as files to main files array
           ...r[roots[Object.keys(roots)[index]]].map(f => ({  // Extract exact records array from full response object

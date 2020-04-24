@@ -28,10 +28,6 @@ module.exports = {
     }
 
     if(!origin || !clientId || !tokenJwt || clientId !== keys.crowdinClientId) {
-      console.log(origin);
-      console.log(clientId);
-      console.log(tokenJwt);
-      console.log(keys.crowdinClientId);
 
       return res.status(401).send('No origin');
     }
