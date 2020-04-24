@@ -83,7 +83,7 @@ Integration.getData = () => (req, res) => {
 
   // Define root elements for integration
   let roots = {
-    'data': 'data',
+    'Project': 'data',
   };  
 
   // Convert root elements to Folders, for future use in integration web component
@@ -94,25 +94,27 @@ Integration.getData = () => (req, res) => {
     node_type: nodeTypes.FOLDER,
   })));
   
-
   // Get records for each root element
   Promise.all(Object.keys(roots).map(t =>
     //mailChimpApi.get({path: `/${t}`, query: {count: 1000, offset: 0}})
-    instance.get('/ProjectVersions')
+    //instance.get('/ProjectVersions/b228fd62-08d1-4908-8259-c4b893a681d3/categories')
+    instance.get('/ProjectVersions/b228fd62-08d1-4908-8259-c4b893a681d3/articles')
+    //instance.get('/ProjectVersions')
   ))
     .then(responses => { // get responses for each root element
 
-      //console.log(responses[0].data.data[0]);
-
       responses.forEach((r, index) => { // Get records from each response
+        console.log(r[roots[Object.keys(roots)[index]]]);   
+        
         files.push( // Push records as files to main files array
-          ...r[roots[Object.keys(roots)[index]]].map(f => ({  // Extract exact records array from full response object
+          ...r[roots[Object.keys(roots)[index]]].data.map(f => ({  // Extract exact records array from full response object
           ...f,
           node_type: nodeTypes.FILE,
           type: 'html', // we upload source file as HTML in this integration, type used for file icon on UI
           name: f.name || (f.settings || {}).title || f.id,
           parent_id: Object.keys(roots)[index], // Set file parent_id to roots folder used to group records
         })))
+
       });
       res.send(files);
     })
