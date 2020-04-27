@@ -1,13 +1,15 @@
 const Mapping = require('./models/mapping');
 //axios package
 const axios = require('axios');
+const helper = require('./helpers');
+const nodeTypes = helper.nodeTypes;
 
 var d360Instance = ''
 
 function crowdinUpdate() {
   return (req, res) => {
     const crowdinApi = res.crowdinApiClient;
-    const fileIds = req.body;
+    const fileIds = req.body.filter(fId => fId.node_type == nodeTypes.FILE);
     const projectId = res.origin.context.project_id;
 
     //instance initialization for axios
