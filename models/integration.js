@@ -85,12 +85,12 @@ Integration.getData = () => (req, res) => {
   };
 
   // Convert root elements to Folders, for future use in integration web component
-  files.push(...Object.keys(roots).map(t => ({
-    id: t,
-    name: t,
-    parent_id: 0,
-    node_type: nodeTypes.FOLDER,
-  })));
+  // files.push(...Object.keys(roots).map(t => ({
+  //   id: t,
+  //   name: t,
+  //   parent_id: 0,
+  //   node_type: nodeTypes.FOLDER,
+  // })));
 
   d360Instance.get('/ProjectVersions')
     .then(function (res) {
@@ -110,7 +110,7 @@ Integration.getData = () => (req, res) => {
                 node_type: nodeTypes.FILE,
                 type: 'html', // we upload source file as HTML in this integration, type used for file icon on UI
                 name: f.name || (f.settings || {}).title || f.slug,
-                parent_id: Object.keys(roots)[index], // Set file parent_id to roots folder used to group records
+                parent_id: 0 //Object.keys(roots)[index], // Set file parent_id to roots folder used to group records
               })))
           });
           res.send(files);
