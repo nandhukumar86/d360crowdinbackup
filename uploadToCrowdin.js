@@ -21,12 +21,14 @@ function crowdinUpdate() {
     // Get content for all selected integration files
     Promise.all(fileIds.map(fid => d360Instance.get(`/Articles/${fid.id}`)))
       .then((values) => {
+      
+        //console.log(values[0].data.data.html_content);
         
         // Prepare responses for better use in next function
         integrationFiles = values.map(
           (f, index) => ({
             ...f,
-            content: f.data.html_content || f.data.content || f.archive_html || f.html,
+            content: f.data.data.html_content || f.data.data.content || f.archive_html || f.html,
             title: fileIds[index].name || (fileIds[index].settings || {}).name || fileIds[index].id,
             name: fileIds[index].name,
           })
