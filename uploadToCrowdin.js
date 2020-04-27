@@ -26,9 +26,9 @@ function crowdinUpdate() {
         integrationFiles = values.map(
           (f, index) => ({
             ...f,
-            content: f.archive_html || f.html,
+            content: f.data.html_content || f.data.content || f.archive_html || f.html,
             title: fileIds[index].name || (fileIds[index].settings || {}).name || fileIds[index].id,
-            name: fileIds[index].id,
+            name: fileIds[index].name,
           })
         );
         // Upload all integration file content to Crowdin storage
