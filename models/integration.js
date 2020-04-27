@@ -103,7 +103,7 @@ Integration.getData = () => (req, res) => {
       ))
         .then(responses => { // get responses for each root element
           responses.forEach((r, index) => { // Get records from each response
-            console.log(r[roots[Object.keys(roots)[index]]]);
+ 
             files.push( // Push records as files to main files array
               ...r[roots[Object.keys(roots)[index]]].data.map(f => ({  // Extract exact records array from full response object
                 ...f,

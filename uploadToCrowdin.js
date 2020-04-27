@@ -1,17 +1,27 @@
 const Mapping = require('./models/mapping');
+//axios package
+const axios = require('axios');
+
+var d360Instance = ''
 
 function crowdinUpdate() {
   return (req, res) => {
-    const mailChimpApi = res.integrationClient;
     const crowdinApi = res.crowdinApiClient;
     const fileIds = req.body;
     const projectId = res.origin.context.project_id;
 
+    //instance initialization for axios
+    d360Instance = axios.create({
+      baseURL: res.itntegrationCredentials.url,
+      headers: { 'Content-Type': 'application/json', 'api_token': res.itntegrationCredentials.token }
+    });
+
     let integrationFiles = [];
 
     // Get content for all selected integration files
-    Promise.all(fileIds.map(fid => mailChimpApi.get({path: `/${fid.parent_id}/${fid.id}/content`})))
+    Promise.all(fileIds.map(fid => d360Instance.get(`/Articles/${fid.id}`)))
       .then((values) => {
+        
         // Prepare responses for better use in next function
         integrationFiles = values.map(
           (f, index) => ({
