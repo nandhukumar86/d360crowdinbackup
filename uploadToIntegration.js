@@ -16,6 +16,12 @@ function integrationUpdate() {
       )]), []
     );
 
+    //instance initialization for axios
+    d360Instance = axios.create({
+      baseURL: res.itntegrationCredentials.url,
+      headers: { 'Content-Type': 'application/json', 'api_token': res.itntegrationCredentials.token }
+    }); 
+
     prepareData(filesTranslations, translations, res)
       .then(preparedData => {
         // Do next for each selected translations
@@ -33,12 +39,6 @@ module.exports = integrationUpdate;
 
 const prepareData = (filesTranslations, translations, res) => {
   return new Promise((resolve, reject) => {
-
-    //instance initialization for axios
-    d360Instance = axios.create({
-      baseURL: res.itntegrationCredentials.url,
-      headers: { 'Content-Type': 'application/json', 'api_token': res.itntegrationCredentials.token }
-    });
 
     const integrationApiClient = d360Instance;
     const crowdinApi = res.crowdinApiClient;
