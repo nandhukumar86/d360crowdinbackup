@@ -31,8 +31,9 @@ function crowdinUpdate() {
           (f, index) => ({
             ...f,
             content: f.data.data.html_content || f.data.data.content || f.archive_html || f.html,
-            title: fileIds[index].name || (fileIds[index].settings || {}).name || fileIds[index].id,
+            title: fileIds[index].slug || (fileIds[index].settings || {}).name || fileIds[index].id,
             name: fileIds[index].name,
+            ifId: fileIds[index].id
           })
         );
         // Upload all integration file content to Crowdin storage
@@ -46,7 +47,7 @@ function crowdinUpdate() {
           ({
             ...f.data,
             title: integrationFiles[i].title,
-            integrationFileId: integrationFiles[i].name,
+            integrationFileId: integrationFiles[i].ifId,
             integrationUpdatedAt: fileIds[i].create_time || Date.now(),
           })
         );
