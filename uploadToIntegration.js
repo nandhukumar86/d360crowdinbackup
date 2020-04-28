@@ -66,7 +66,7 @@ const prepareData = (filesTranslations, translations, res) => {
             // Store selected files responses on filesById
             filesById = responses.reduce((acc, fileData) => ({ ...acc, [`${fileData.data.id}`]: fileData.data }), {});
             // Get all selected files source campaigns
-            return Promise.all(Object.values(filesById).map(f => integrationApiClient.get(`/Articles/${f.name.replace('.html', '')}`)))
+            return Promise.all(Object.values(filesById).map(f => integrationApiClient.get(`/Articles/${f.name.replace('.txt', '')}`)))
           })
           .then(integrationFiles => {
             // Store campaigns date on object by id
@@ -94,29 +94,31 @@ const prepareData = (filesTranslations, translations, res) => {
 
 const updateIntegrationFile = (params) => {
   const { filesById, integrationFilesById, integrationFilesList, translatedFilesData, t, index, res } = params;
-  const fileName = `${filesById[t.fileId].title}/${t.languageId}`; // prepare file translation name
-  const integrationTranslationFile = integrationFilesList.find(f => f.settings.title === fileName); // Try find translation on
-  const integrationApiClient = res.integrationClient;
+  const fileName = `${filesById[t.fileId].name}`;//${t.languageId}`; // prepare file translation name
+  const integrationTranslationFile = integrationFilesList.find(f => f.id === fileName.replace('.txt', '')); // Try find translation on
+  const integrationApiClient = d360Instance;
 
   if (integrationTranslationFile) {
     // We find translation for this file and this language, update it
-    return integrationApiClient.put('/campaigns/' + integrationTranslationFile.id + '/content', { html: translatedFilesData[index] })
-  } else {
-    // We don't find translation for this file and language
-    // Get origin file from integration
-    let originFile = integrationFilesById[filesById[t.fileId].name.replace('.html', '')];
-    // Prepare payload to create new campaign
-    let payload = {
-      type: originFile.type,
-      settings: { ...originFile.settings, template_id: undefined, title: originFile.settings.title + `/${t.languageId}` },
-      variate_settings: originFile.variate_settings,
-      tracking: originFile.tracking
-    };
-    // Create new campaign
-    return integrationApiClient.post('/campaigns', payload)
-      .then(res => {
-        // set current translations as campaign content
-        return integrationApiClient.put('/campaigns/' + res.id + '/content', { html: translatedFilesData[index] })
-      })
-  }
+    //return integrationApiClient.put('/Articles/' + integrationTranslationFile.id, {content:'this needs the from code'});
+    return integrationApiClient.put('/Articles/' + integrationTranslationFile.id, { content: translatedFilesData[index] })
+  } 
+  // else {
+  //   // We don't find translation for this file and language
+  //   // Get origin file from integration
+  //   let originFile = integrationFilesById[filesById[t.fileId].name.replace('.html', '')];
+  //   // Prepare payload to create new campaign
+  //   let payload = {
+  //     type: originFile.type,
+  //     settings: { ...originFile.settings, template_id: undefined, title: originFile.settings.title + `/${t.languageId}` },
+  //     variate_settings: originFile.variate_settings,
+  //     tracking: originFile.tracking
+  //   };
+  //   // Create new campaign
+  //   return integrationApiClient.post('/campaigns', payload)
+  //     .then(res => {
+  //       // set current translations as campaign content
+  //       return integrationApiClient.put('/campaigns/' + res.id + '/content', { html: translatedFilesData[index] })
+  //     })
+  // }
 };

@@ -108,8 +108,8 @@ Integration.getData = () => (req, res) => {
               ...r[roots[Object.keys(roots)[index]]].data.map(f => ({  // Extract exact records array from full response object
                 ...f,
                 node_type: nodeTypes.FILE,
-                type: 'html', // we upload source file as HTML in this integration, type used for file icon on UI
-                name: f.name || (f.settings || {}).title || f.id,
+                type: 'txt', // we upload source file as HTML in this integration, type used for file icon on UI
+                name: f.slug || (f.settings || {}).title || f.id,
                 fid: f.name,
                 parent_id: 0//Object.keys(roots)[index], // Set file parent_id to roots folder used to group records
               })))
