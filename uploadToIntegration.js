@@ -65,7 +65,7 @@ const prepareData = (filesTranslations, translations, res) => {
             // Store selected files responses on filesById
             filesById = responses.reduce((acc, fileData) => ({ ...acc, [`${fileData.data.id}`]: fileData.data }), {});
             // Get all selected files source campaigns
-            return Promise.all(Object.values(filesById).map(f => integrationApiClient.get(`/Articles/${f.name.replace('.txt', '')}`)))
+            return Promise.all(Object.values(filesById).map(f => integrationApiClient.get(`/Articles/${f.name.replace('.md', '')}`)))
           })
           .then(integrationFiles => {
             // Store campaigns date on object by id
@@ -94,7 +94,7 @@ const prepareData = (filesTranslations, translations, res) => {
 const updateIntegrationFile = (params) => {
   const { filesById, integrationFilesById, integrationFilesList, translatedFilesData, t, index, res } = params;
   const fileName = `${filesById[t.fileId].title}`;//${t.languageId}`; // prepare file translation name
-  const integrationTranslationFile = integrationFilesList.find(f => f.slug === fileName.replace('.txt', '')); // Try find translation on
+  const integrationTranslationFile = integrationFilesList.find(f => f.slug === fileName.replace('.md', '')); // Try find translation on
   const integrationApiClient = d360Instance;
 
   if (integrationTranslationFile) {

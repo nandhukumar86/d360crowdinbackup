@@ -39,7 +39,7 @@ function crowdinUpdate() {
         );
         // Upload all integration file content to Crowdin storage
         return Promise.all(
-          integrationFiles.map(f => crowdinApi.uploadStorageApi.addStorage(`${f.ifId}.txt`, `${f.content}`))
+          integrationFiles.map(f => crowdinApi.uploadStorageApi.addStorage(`${f.ifId}.md`, `${f.content}`))
         )
       })
       .then(storageIds => {
