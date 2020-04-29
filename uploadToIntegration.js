@@ -93,8 +93,8 @@ const prepareData = (filesTranslations, translations, res) => {
 
 const updateIntegrationFile = (params) => {
   const { filesById, integrationFilesById, integrationFilesList, translatedFilesData, t, index, res } = params;
-  const fileName = `${filesById[t.fileId].name}`;//${t.languageId}`; // prepare file translation name
-  const integrationTranslationFile = integrationFilesList.find(f => f.id === fileName.replace('.txt', '')); // Try find translation on
+  const fileName = `${filesById[t.fileId].title}`;//${t.languageId}`; // prepare file translation name
+  const integrationTranslationFile = integrationFilesList.find(f => f.slug === fileName.replace('.txt', '')); // Try find translation on
   const integrationApiClient = d360Instance;
 
   if (integrationTranslationFile) {
