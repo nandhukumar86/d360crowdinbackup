@@ -28,7 +28,7 @@ function integrationUpdate() {
         return Promise.all(translations.map((t, index) => updateIntegrationFile({ ...preparedData, t, index, res })));
       })
       .then(responses => {
-        res.status(200).json(responses.data); //responses.data closes the circular reference issue.
+        res.status(200).json(''); //responses.data closes the circular reference issue.
       })
       .catch(catchRejection('Cant upload files to integration', res));
   }
