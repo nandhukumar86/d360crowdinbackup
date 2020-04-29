@@ -119,7 +119,7 @@ if(process.env.NODE_ENV !== 'production') {
 }
 // ------------------------------ end routes for debugging only ---------------------------
 
-db.sync({force: false}).then(function() {
+db.sync({force: true}).then(function() {
   app.listen(PORT, () => {
     console.log(`Crowdin apps listening on ${PORT}! Good luck!!!`);
   });
