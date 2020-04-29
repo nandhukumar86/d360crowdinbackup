@@ -33,7 +33,8 @@ function crowdinUpdate() {
             content: f.data.data.content || f.data.data.content || f.archive_html || f.html,
             title: fileIds[index].slug || (fileIds[index].settings || {}).name || fileIds[index].id,
             name: fileIds[index].name,
-            ifId: fileIds[index].id
+            //ifId: fileIds[index].id
+            ifId: fileIds[index].slug
           })
         );
         // Upload all integration file content to Crowdin storage
