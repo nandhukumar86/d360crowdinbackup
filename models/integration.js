@@ -74,9 +74,9 @@ Integration.getApiClient = function (req, res) {
 };
 
 // Get date from integration
-Integration.getData = () => (req, res) => {
+Integration.getData = () => (req, resp) => {
 
-  const mailChimpApi = res.integrationClient; // Destruct integration client from response
+  const mailChimpApi = resp.integrationClient; // Destruct integration client from response
   let files = [];
 
   // Define root elements for integration
@@ -84,39 +84,60 @@ Integration.getData = () => (req, res) => {
     'Project': 'data',
   };
 
-  //Convert root elements to Folders, for future use in integration web component
-  // files.push(...Object.keys(roots).map(t => ({
-  //   id: t,
-  //   name: t,
-  //   parent_id: 0,
-  //   node_type: nodeTypes.FOLDER,
-  // })));
+  files.push(...Object.keys(roots).map(t => ({
+    id: t,
+    name: t,
+    parent_id: 0,
+    node_type: nodeTypes.FOLDER,
+  })));
 
   d360Instance.get('/ProjectVersions')
     .then(function (res) {
-      projectVersionId = res.data.data[0].id;
-    })
-    .then(() => {
-      // Get records for each root element
+      projectVersionId = res.data.data[0].id
+    }
+    ).then(() => {
       Promise.all(Object.keys(roots).map(t =>
-        d360Instance.get(`/ProjectVersions/${projectVersionId}/articles`)
+        d360Instance.get(`/ProjectVersions/${projectVersionId}/categories`)
       ))
-        .then(responses => { // get responses for each root element
-          responses.forEach((r, index) => { // Get records from each response
- 
-            files.push( // Push records as files to main files array
-              ...r[roots[Object.keys(roots)[index]]].data.map(f => ({  // Extract exact records array from full response object
-                ...f,
-                node_type: nodeTypes.FILE,
-                type: 'md', // we upload source file as HTML in this integration, type used for file icon on UI
-                name: f.slug || (f.settings || {}).title || f.id,
-                fid: f.name,
-                parent_id: 0//Object.keys(roots)[index], // Set file parent_id to roots folder used to group records
-              })))
-          });
-          res.send(files);
+        .then(function (res) {
+          res.map(c => {
+            c.data.data.forEach(item => {
+              Recursion('category', item, 'Project');
+            });
+          })
+          resp.send(files);
         })
-        .catch(catchRejection('Cant fetch integration data', res));
-    });
+    })
+
+  function Recursion(nodetype, obj, parentId) {
+
+    if (nodetype == 'article') {
+      obj["node_type"] = nodeTypes.FILE;
+      obj["type"] = 'md';
+      obj["name"] = obj.slug || (obj.settings || {}).title || obj.id;
+      obj["fid"] = obj.name;
+      obj["parent_id"] = parentId;
+      files.push(obj);
+    }
+
+    if (nodetype == 'category') {
+
+      obj["node_type"] = nodeTypes.FOLDER;
+      obj["fid"] = obj.name;
+      obj["parent_id"] = parentId;
+      files.push(obj);
+
+      var subCategories = obj.child_categories;
+      var articles = obj.articles;
+
+      subCategories.forEach(element => {
+        Recursion('category', element, obj.id);
+      });
+
+      articles.forEach(element => {
+        Recursion('article', element, obj.id);
+      });
+    }
+  }
 }
 module.exports = Integration;
