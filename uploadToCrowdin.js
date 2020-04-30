@@ -62,25 +62,15 @@ function crowdinUpdate() {
             
 
             // Promise.all(parentFolderMapping.map(f=>{
-            //   // if(f.folderName != 'Parent')
-            //   // {
+            //   if(f.folderName != 'Parent')
+            //   {
             //     return crowdinApi.sourceFilesApi.editDirectory(projectId, f.folderId,{
             //       op: "replace",
-            //       path: "/name",
+            //       path: "directoryId",
             //       values: 1028
             //       })
-            //       .then(r=>{
-            //         console.log(r);
-
-            //       });
-            //   // }
+            //   }
             // }));
-
-            // crowdinApi.sourceFilesApi.listProjectDirectories(projectId)
-            // .then(r=>{
-            //   console.log(r);
-              
-            // })
 
           })
       })
