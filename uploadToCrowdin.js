@@ -26,47 +26,19 @@ function crowdinUpdate() {
     crowdinApi.sourceFilesApi.listProjectDirectories(projectId)
       .then(values => {
         cloudinDirectoryNames = values.data.map(d => d.data.name);
-        //folderDirectoryIDMapping = 
-        directories.forEach((element,i) => {
-          if(!cloudinDirectoryNames.includes(element.name))
-          {
 
+        directories.forEach((element) => {
+          if (!cloudinDirectoryNames.includes(element.name)) {
+            crowdinApi.sourceFilesApi.createDirectory(projectId, {
+              name: element.name,
+              directoryId: null
+            })
           }
-          
-          
-
-          // if (values.data[i].data.name == element.name)
-          // {
-          //   folderDirectoryIDMapping.push(
-          //     {
-          //       folderName: element.name,
-          //       directoryId: values.data[i].data.id
-          //     }
-          //   )
-          // }
-
-          // if (!values.data.includes(element)) {
-          //   var dirId = folderDirectoryIDMapping.filter(d => d.name == element.parent_id).directoryId
-          //   crowdinApi.sourceFilesApi.createDirectory(projectId, {
-          //     name: element.name,
-          //     directoryId: dirId
-          //   }).then(response => {
-              
-          //     folderDirectoryIDMapping.push(
-          //       {
-          //         folderName: element.name,
-          //         directoryId: response.data.id
-          //       }
-          //     )
-
-          //     console.log(folderDirectoryIDMapping);
-              
-          //   })
-          // }
         });
       })
 
-    console.log();
+    
+    console.log(folderDirectoryIDMapping);
 
 
     // Get content for all selected integration files
