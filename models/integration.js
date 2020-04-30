@@ -88,6 +88,7 @@ Integration.getData = () => (req, resp) => {
     id: t,
     name: t,
     parent_id: 0,
+    parent_name: t,
     node_type: nodeTypes.FOLDER,
   })));
 
@@ -102,14 +103,14 @@ Integration.getData = () => (req, resp) => {
         .then(function (res) {
           res.map(c => {
             c.data.data.forEach(item => {
-              Recursion('category', item, 'Project');
+              Recursion('category', item, 'Project', 'Project');
             });
           })
           resp.send(files);
         })
     })
 
-  function Recursion(nodetype, obj, parentId) {
+  function Recursion(nodetype, obj, parentId, parentName) {
 
     if (nodetype == 'article') {
       obj["node_type"] = nodeTypes.FILE;
@@ -117,6 +118,7 @@ Integration.getData = () => (req, resp) => {
       obj["name"] = obj.slug || (obj.settings || {}).title || obj.id;
       obj["fid"] = obj.name;
       obj["parent_id"] = parentId;
+      obj["parent_name"] = parentName;
       files.push(obj);
     }
 
@@ -125,17 +127,18 @@ Integration.getData = () => (req, resp) => {
       obj["node_type"] = nodeTypes.FOLDER;
       obj["fid"] = obj.name;
       obj["parent_id"] = parentId;
+      obj["parent_name"] = parentName;
       files.push(obj);
 
       var subCategories = obj.child_categories;
       var articles = obj.articles;
 
       subCategories.forEach(element => {
-        Recursion('category', element, obj.id);
+        Recursion('category', element, obj.id, obj.name);
       });
 
       articles.forEach(element => {
-        Recursion('article', element, obj.id);
+        Recursion('article', element, obj.id, obj.name);
       });
     }
   }

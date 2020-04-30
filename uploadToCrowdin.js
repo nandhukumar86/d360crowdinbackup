@@ -20,6 +20,7 @@ function crowdinUpdate() {
 
     let integrationFiles = [];
     let folderDirectoryIDMapping = [];
+    let parentFolderMapping = [];
 
     const directories = req.body.filter(fid => fid.node_type == nodeTypes.FOLDER);
 
@@ -27,18 +28,66 @@ function crowdinUpdate() {
       .then(values => {
         cloudinDirectoryNames = values.data.map(d => d.data.name);
 
-        directories.forEach((element) => {
+        values.data.forEach(element => {
+          folderDirectoryIDMapping.push({
+            folderName: element.data.name,
+            folderId: element.data.id
+          });
+        });
+
+        Promise.all(directories.map(element => {
           if (!cloudinDirectoryNames.includes(element.name)) {
-            crowdinApi.sourceFilesApi.createDirectory(projectId, {
+            return crowdinApi.sourceFilesApi.createDirectory(projectId, {
               name: element.name,
               directoryId: null
+            }).then(r=>{
+              folderDirectoryIDMapping.push({
+                folderName: r.data.name,
+                folderId: r.data.id
+              });
             })
           }
-        });
+        }))
+          .then(resp => {
+            directories.forEach(element => {
+              parentFolderMapping.push({
+                folderName: element.name,
+                folderId: folderDirectoryIDMapping.filter(t => t.folderName == element.name)[0].folderId,
+                parentFolderId: folderDirectoryIDMapping.filter(t => t.folderName == element.parent_name)[0].folderId
+              });
+            });
+
+            //able ot get mapping columns
+            console.log(parentFolderMapping);
+            
+
+            // Promise.all(parentFolderMapping.map(f=>{
+            //   // if(f.folderName != 'Parent')
+            //   // {
+            //     return crowdinApi.sourceFilesApi.editDirectory(projectId, f.folderId,{
+            //       op: "replace",
+            //       path: "/name",
+            //       values: 1028
+            //       })
+            //       .then(r=>{
+            //         console.log(r);
+
+            //       });
+            //   // }
+            // }));
+
+            // crowdinApi.sourceFilesApi.listProjectDirectories(projectId)
+            // .then(r=>{
+            //   console.log(r);
+              
+            // })
+
+          })
       })
 
-    
-    console.log(folderDirectoryIDMapping);
+
+
+
 
 
     // Get content for all selected integration files
