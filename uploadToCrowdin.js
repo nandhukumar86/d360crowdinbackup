@@ -37,7 +37,7 @@ function crowdinUpdate() {
         });
 
         Promise.all(directories.map(element => {
-          if (!cloudinDirectoryNames.includes(element.name)) {
+          if (!cloudinDirectoryNames.includes(`${element.name} (${element.id})`)) {
             return crowdinApi.sourceFilesApi.createDirectory(projectId, {
               name: `${element.name} (${element.id})`,
               directoryId: null,
