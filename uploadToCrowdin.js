@@ -32,19 +32,19 @@ function crowdinUpdate() {
         values.data.forEach(element => {
           folderDirectoryIDMapping.push({
             folderName: element.data.name,
-            folderId: element.data.id
+            folderId: element.data.id,
           });
         });
 
         Promise.all(directories.map(element => {
           if (!cloudinDirectoryNames.includes(element.name)) {
             return crowdinApi.sourceFilesApi.createDirectory(projectId, {
-              name: `${element.name}_${element.id}`,
-              directoryId: null
+              name: `${element.name} (${element.id})`,
+              directoryId: null,
             }).then(r => {
               folderDirectoryIDMapping.push({
                 folderName: r.data.name,
-                folderId: r.data.id
+                folderId: r.data.id,
               });
             })
           }
@@ -58,8 +58,8 @@ function crowdinUpdate() {
               if (element.name != 'Project') {
                 parentFolderMapping.push({
                   folderName: element.name,
-                  folderId: folderDirectoryIDMapping.filter(t => t.folderName == `${element.name}_${element.id}`)[0].folderId,
-                  parentFolderId: folderDirectoryIDMapping.filter(t => t.folderName == `${element.parent_name}_${element.parent_id}`)[0].folderId
+                  folderId: folderDirectoryIDMapping.filter(t => t.folderName == `${element.name} (${element.id})`)[0].folderId,
+                  parentFolderId: folderDirectoryIDMapping.filter(t => t.folderName == `${element.parent_name} (${element.parent_id})`)[0].folderId
                 });
               }
             });
