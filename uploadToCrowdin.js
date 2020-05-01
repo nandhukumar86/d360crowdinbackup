@@ -50,10 +50,6 @@ function crowdinUpdate() {
           }
         }))
           .then(resp => {
-            
-            console.log(folderDirectoryIDMapping);
-            
-
             directories.forEach(element => {
               if (element.name != 'Project') {
                 parentFolderMapping.push({
