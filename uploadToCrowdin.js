@@ -71,6 +71,10 @@ function crowdinUpdate() {
           })
       })
 
+    function findFolderId(folderName) {
+      return folderDirectoryIDMapping.filter(a => a.folderName == folderName)[0].folderId
+    }
+
     // Get content for all selected integration files
     Promise.all(fileIds.map(fid => d360Instance.get(`/Articles/${fid.id}`)))
       .then((values) => {
@@ -82,7 +86,8 @@ function crowdinUpdate() {
             content: f.data.data.content || f.data.data.content || f.archive_html || f.html,
             title: fileIds[index].slug || (fileIds[index].settings || {}).name || fileIds[index].id,
             name: fileIds[index].name,
-            ifId: fileIds[index].slug
+            ifId: fileIds[index].slug,
+            folderId: findFolderId(`${fileIds[index].parent_name} (${fileIds[index].parent_id})`)
           })
         );
         // Upload all integration file content to Crowdin storage
@@ -98,6 +103,7 @@ function crowdinUpdate() {
             title: integrationFiles[i].title,
             integrationFileId: integrationFiles[i].ifId,
             integrationUpdatedAt: fileIds[i].create_time || Date.now(),
+            folderId: integrationFiles[i].folderId
           })
         );
 
@@ -123,7 +129,8 @@ function crowdinUpdate() {
                     return crowdinApi.sourceFilesApi.createFile(projectId, {
                       storageId: f.id,
                       name: f.fileName,
-                      title: f.title
+                      title: f.title,
+                      directoryId: f.folderId
                     })
                       .then(response => {
                         // update mapping record on DB
@@ -140,6 +147,7 @@ function crowdinUpdate() {
                   storageId: f.id,
                   name: f.fileName || 'no file name',
                   title: f.title || 'no title',
+                  directoryId: f.folderId || 'no folder'
                 })
                   .then(response => {
                     // Create new record on mapping table
