@@ -24,6 +24,7 @@ function crowdinUpdate() {
 
     const directories = req.body.filter(fid => fid.node_type == nodeTypes.FOLDER);
 
+
     crowdinApi.sourceFilesApi.listProjectDirectories(projectId)
       .then(values => {
         cloudinDirectoryNames = values.data.map(d => d.data.name);
@@ -40,7 +41,7 @@ function crowdinUpdate() {
             return crowdinApi.sourceFilesApi.createDirectory(projectId, {
               name: element.name,
               directoryId: null
-            }).then(r=>{
+            }).then(r => {
               folderDirectoryIDMapping.push({
                 folderName: r.data.name,
                 folderId: r.data.id
@@ -50,49 +51,29 @@ function crowdinUpdate() {
         }))
           .then(resp => {
             directories.forEach(element => {
-              parentFolderMapping.push({
-                folderName: element.name,
-                folderId: folderDirectoryIDMapping.filter(t => t.folderName == element.name)[0].folderId,
-                parentFolderId: folderDirectoryIDMapping.filter(t => t.folderName == element.parent_name)[0].folderId
-              });
-            });
-
-            //able ot get mapping columns
-            console.log(parentFolderMapping);
-            
-
-            Promise.all(parentFolderMapping.map(f=>{
-              if(f.folderName != 'Parent')
-              {
-                var array = [{
-                  op: "replace",
-                  path: "/directoryId",
-                  values: f.parentFolderId
-                }];
-                //return crowdinApi.sourceFilesApi.editDirectory(projectId, f.folderId, array)
-                crowdinApi.sourceFilesApi.createDirectory(projectId, {
-                  name: `${f.folderId}_created`,
-                  directoryId: null
-                })
+              if (element.name != 'Project') {
+                parentFolderMapping.push({
+                  folderName: element.name,
+                  folderId: folderDirectoryIDMapping.filter(t => t.folderName == element.name)[0].folderId,
+                  parentFolderId: folderDirectoryIDMapping.filter(t => t.folderName == element.parent_name)[0].folderId
+                });
               }
-            }))
-            .then(res=>{
-              console.log(res);
             });
 
+            return Promise.all(parentFolderMapping.map(f => {
+              var array = [{
+                op: "replace",
+                path: "/directoryId",
+                value: f.parentFolderId
+              }];
+              return crowdinApi.sourceFilesApi.editDirectory(projectId, f.folderId, array)
+            }))
           })
       })
-
-
-
-
-
 
     // Get content for all selected integration files
     Promise.all(fileIds.map(fid => d360Instance.get(`/Articles/${fid.id}`)))
       .then((values) => {
-
-        //console.log(values[0].data.data.html_content);
 
         // Prepare responses for better use in next function
         integrationFiles = values.map(
