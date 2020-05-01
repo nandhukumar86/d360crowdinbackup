@@ -11,7 +11,6 @@ const decryptData = helper.decryptData;
 const nodeTypes = helper.nodeTypes;
 
 let projectVersionId = ''
-let d360Instance = ''
 
 // Database structure Integration table
 const Integration = db.define('integration', {
@@ -69,6 +68,8 @@ Integration.getApiClient = function (req, res) {
         headers: { 'Content-Type': 'application/json', 'api_token': decryptData(integration.integrationToken) }
       });
 
+      res.d360Instance = d360Instance;
+
       return new Promise(resolve => resolve());
     })
 };
@@ -76,7 +77,7 @@ Integration.getApiClient = function (req, res) {
 // Get date from integration
 Integration.getData = () => (req, resp) => {
 
-  const mailChimpApi = resp.integrationClient; // Destruct integration client from response
+  const d360Instance = resp.d360Instance; // Destruct integration client from response
   let files = [];
 
   // Define root elements for integration

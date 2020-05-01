@@ -3,8 +3,6 @@ const axios = require('axios').default;
 const helper = require('./helpers');
 const catchRejection = helper.catchRejection;
 
-var d360Instance = ''
-
 function integrationUpdate() {
   return (req, res) => {
     const filesTranslations = req.body;
@@ -16,11 +14,7 @@ function integrationUpdate() {
       )]), []
     );
 
-    //instance initialization for axios
-    d360Instance = axios.create({
-      baseURL: res.itntegrationCredentials.url,
-      headers: { 'Content-Type': 'application/json', 'api_token': res.itntegrationCredentials.token }
-    }); 
+    d360Instance = res.d360Instance;
 
     prepareData(filesTranslations, translations, res)
       .then(preparedData => {

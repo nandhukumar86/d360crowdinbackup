@@ -4,20 +4,13 @@ const axios = require('axios');
 const helper = require('./helpers');
 const nodeTypes = helper.nodeTypes;
 
-var d360Instance = ''
-
 function crowdinUpdate() {
   return (req, res) => {
     const crowdinApi = res.crowdinApiClient;
     const fileIds = req.body.filter(fId => fId.node_type == nodeTypes.FILE);
     const projectId = res.origin.context.project_id;
-
-    //instance initialization for axios
-    d360Instance = axios.create({
-      baseURL: res.itntegrationCredentials.url,
-      headers: { 'Content-Type': 'application/json', 'api_token': res.itntegrationCredentials.token }
-    });
-
+    const d360Instance = res.d360Instance;
+    
     let integrationFiles = [];
     let folderDirectoryIDMapping = [];
     let parentFolderMapping = [];
