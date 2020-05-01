@@ -39,7 +39,7 @@ function crowdinUpdate() {
         Promise.all(directories.map(element => {
           if (!cloudinDirectoryNames.includes(element.name)) {
             return crowdinApi.sourceFilesApi.createDirectory(projectId, {
-              name: element.name,
+              name: `${element.name}_${element.id}`,
               directoryId: null
             }).then(r => {
               folderDirectoryIDMapping.push({
@@ -50,12 +50,16 @@ function crowdinUpdate() {
           }
         }))
           .then(resp => {
+            
+            console.log(folderDirectoryIDMapping);
+            
+
             directories.forEach(element => {
               if (element.name != 'Project') {
                 parentFolderMapping.push({
                   folderName: element.name,
-                  folderId: folderDirectoryIDMapping.filter(t => t.folderName == element.name)[0].folderId,
-                  parentFolderId: folderDirectoryIDMapping.filter(t => t.folderName == element.parent_name)[0].folderId
+                  folderId: folderDirectoryIDMapping.filter(t => t.folderName == `${element.name}_${element.id}`)[0].folderId,
+                  parentFolderId: folderDirectoryIDMapping.filter(t => t.folderName == `${element.parent_name}_${element.parent_id}`)[0].folderId
                 });
               }
             });
