@@ -19,10 +19,6 @@ const Mapping = db.define('mapping', {
     type: Sequelize.STRING,
     allowNull: false,
   },
-  directoryId: {
-    type: Sequelize.STRING,
-    allowNull: true,
-  },
   crowdinUpdatedAt: {
     type: Sequelize.STRING,
     allowNull: false,
