@@ -61,16 +61,24 @@ function crowdinUpdate() {
             console.log(parentFolderMapping);
             
 
-            // Promise.all(parentFolderMapping.map(f=>{
-            //   if(f.folderName != 'Parent')
-            //   {
-            //     return crowdinApi.sourceFilesApi.editDirectory(projectId, f.folderId,{
-            //       op: "replace",
-            //       path: "directoryId",
-            //       values: 1028
-            //       })
-            //   }
-            // }));
+            Promise.all(parentFolderMapping.map(f=>{
+              if(f.folderName != 'Parent')
+              {
+                var array = [{
+                  op: "replace",
+                  path: "/directoryId",
+                  values: f.parentFolderId
+                }];
+                //return crowdinApi.sourceFilesApi.editDirectory(projectId, f.folderId, array)
+                crowdinApi.sourceFilesApi.createDirectory(projectId, {
+                  name: `${f.folderId}_created`,
+                  directoryId: null
+                })
+              }
+            }))
+            .then(res=>{
+              console.log(res);
+            });
 
           })
       })
