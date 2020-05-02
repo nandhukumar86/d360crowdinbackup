@@ -59,7 +59,14 @@ const prepareData = (filesTranslations, translations, res) => {
             // Store selected files responses on filesById
             filesById = responses.reduce((acc, fileData) => ({ ...acc, [`${fileData.data.id}`]: fileData.data }), {});
             // Get all selected files source campaigns
-            return Promise.all(Object.values(filesById).map(f => integrationApiClient.get(`/Articles/${f.name.replace('.md', '')}`)))
+            return Promise.all(Object.values(filesById).map(f => {
+              if (f.name.indexOf("_content.md") > 0) {
+                return integrationApiClient.get(`/Articles/${f.name.replace('_content.md', '')}`)
+              }
+              else if (f.name.indexOf("_title.md") > 0) {
+                return integrationApiClient.get(`/Articles/${f.name.replace('_title.md', '')}`)
+              }
+            }))
           })
           .then(integrationFiles => {
             // Store campaigns date on object by id
@@ -87,15 +94,21 @@ const prepareData = (filesTranslations, translations, res) => {
 
 const updateIntegrationFile = (params) => {
   const { filesById, integrationFilesById, integrationFilesList, translatedFilesData, t, index, res } = params;
+  const crowdinFileName = filesById[t.fileId].name;
   const fileName = `${filesById[t.fileId].title}`;//${t.languageId}`; // prepare file translation name
-  const integrationTranslationFile = integrationFilesList.find(f => f.slug === fileName.replace('.md', '')); // Try find translation on
+  const integrationTranslationFile = integrationFilesList.find(f => f.slug === fileName.replace('_content.md', '') || f.slug === fileName.replace('_title.md', '')); // Try find translation on
   const integrationApiClient = d360Instance;
 
   if (integrationTranslationFile) {
     // We find translation for this file and this language, update it
     //return integrationApiClient.put('/Articles/' + integrationTranslationFile.id, {content:'this needs the from code'});
-    return integrationApiClient.put('/Articles/' + integrationTranslationFile.id, { content: translatedFilesData[index] })
-  } 
+    if (crowdinFileName.indexOf("_content.") > 0) {
+      return integrationApiClient.put('/Articles/' + integrationTranslationFile.id, { content: translatedFilesData[index] })
+    }
+    if (crowdinFileName.indexOf("_title.") > 0) {
+      return integrationApiClient.put('/Articles/' + integrationTranslationFile.id, { title: translatedFilesData[index] })
+    }
+  }
   // else {
   //   // We don't find translation for this file and language
   //   // Get origin file from integration
