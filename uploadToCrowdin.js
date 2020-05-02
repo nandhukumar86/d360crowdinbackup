@@ -77,7 +77,7 @@ function crowdinUpdate() {
         integrationFiles = values.map(
           (f, index) => ({
             ...f,
-            content: f.data.data.content || f.data.data.content || f.archive_html || f.html,
+            content: fileIds[index].type == "html" ? f.data.data.html_content : f.data.data.content,
             title: fileIds[index].slug || (fileIds[index].settings || {}).name || fileIds[index].id,
             name: fileIds[index].name,
             ifId: `${fileIds[index].slug}_content`,
