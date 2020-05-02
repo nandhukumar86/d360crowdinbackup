@@ -120,6 +120,7 @@ Integration.getData = () => (req, resp) => {
       obj["fid"] = obj.name;
       obj["parent_id"] = parentId;
       obj["parent_name"] = parentName;
+
       files.push(obj);
     }
 

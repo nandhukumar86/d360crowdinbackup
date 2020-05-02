@@ -81,7 +81,8 @@ function crowdinUpdate() {
             title: fileIds[index].slug || (fileIds[index].settings || {}).name || fileIds[index].id,
             name: fileIds[index].name,
             ifId: `${fileIds[index].slug}_content`,
-            folderId: findFolderId(`${fileIds[index].parent_name} (${fileIds[index].parent_id})`)
+            folderId: findFolderId(`${fileIds[index].parent_name} (${fileIds[index].parent_id})`),
+            filetype: fileIds[index].type
           })
         );
 
@@ -92,7 +93,8 @@ function crowdinUpdate() {
             title: fileIds[index].slug || (fileIds[index].settings || {}).name || fileIds[index].id,
             name: fileIds[index].name,
             ifId: `${fileIds[index].slug}_title`,
-            folderId: findFolderId(`${fileIds[index].parent_name} (${fileIds[index].parent_id})`)
+            folderId: findFolderId(`${fileIds[index].parent_name} (${fileIds[index].parent_id})`),
+            filetype: 'txt' //Considering title is always text.
           })
         );
 
@@ -102,7 +104,7 @@ function crowdinUpdate() {
 
         // Upload all integration file content to Crowdin storage
         return Promise.all(
-          integrationFiles.map(f => crowdinApi.uploadStorageApi.addStorage(`${f.ifId}.md`, `${f.content}`))
+          integrationFiles.map(f => crowdinApi.uploadStorageApi.addStorage(`${f.ifId}.${f.filetype}`, `${f.content}`))
         )
       })
       .then(storageIds => {
