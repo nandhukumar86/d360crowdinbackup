@@ -10,8 +10,9 @@ function crowdinUpdate() {
     const fileIds = req.body.filter(fId => fId.node_type == nodeTypes.FILE);
     const projectId = res.origin.context.project_id;
     const d360Instance = res.d360Instance;
-    
+
     let integrationFiles = [];
+    let integrationTitles = [];
     let folderDirectoryIDMapping = [];
     let parentFolderMapping = [];
 
@@ -79,10 +80,26 @@ function crowdinUpdate() {
             content: f.data.data.content || f.data.data.content || f.archive_html || f.html,
             title: fileIds[index].slug || (fileIds[index].settings || {}).name || fileIds[index].id,
             name: fileIds[index].name,
-            ifId: fileIds[index].slug,
+            ifId: `${fileIds[index].slug}_content`,
             folderId: findFolderId(`${fileIds[index].parent_name} (${fileIds[index].parent_id})`)
           })
         );
+
+        integrationTitles = values.map(
+          (f, index) => ({
+            ...f,
+            content: f.data.data.title,
+            title: fileIds[index].slug || (fileIds[index].settings || {}).name || fileIds[index].id,
+            name: fileIds[index].name,
+            ifId: `${fileIds[index].slug}_title`,
+            folderId: findFolderId(`${fileIds[index].parent_name} (${fileIds[index].parent_id})`)
+          })
+        );
+
+        integrationTitles.forEach(title => {
+          integrationFiles.push(title);
+        });
+
         // Upload all integration file content to Crowdin storage
         return Promise.all(
           integrationFiles.map(f => crowdinApi.uploadStorageApi.addStorage(`${f.ifId}.md`, `${f.content}`))
@@ -95,7 +112,7 @@ function crowdinUpdate() {
             ...f.data,
             title: integrationFiles[i].title,
             integrationFileId: integrationFiles[i].ifId,
-            integrationUpdatedAt: fileIds[i].create_time || Date.now(),
+            integrationUpdatedAt: integrationFiles[i].create_time || Date.now(),
             folderId: integrationFiles[i].folderId
           })
         );
