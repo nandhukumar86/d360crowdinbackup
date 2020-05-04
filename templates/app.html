@@ -365,7 +365,7 @@
   }
 
   function crowdinFilesFolderToggled(event) {
-    if(event.detail.componentId === 'crowdin-files' && event.detail.isOpen) {
+    if(event.detail.componentId === 'crowdin-files' && event.detail.isOpen && event.detail.type === '1') {
       getFileProgress(event.detail.id);
     }
   }

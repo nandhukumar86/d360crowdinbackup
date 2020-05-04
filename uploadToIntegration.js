@@ -2,10 +2,11 @@ const axios = require('axios').default;
 
 const helper = require('./helpers');
 const catchRejection = helper.catchRejection;
+const nodeTypes = helper.nodeTypes;
 
 function integrationUpdate() {
   return (req, res) => {
-    const filesTranslations = req.body;
+    const filesTranslations = req.body;//.filter(f => f.type === nodeTypes.FILE);
 
     // prepare files translations object to translations array for using on map and forEach functions
     const translations = Object.keys(filesTranslations).reduce((acc, fileId) =>
