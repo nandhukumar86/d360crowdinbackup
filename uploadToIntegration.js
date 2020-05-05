@@ -6,26 +6,40 @@ const nodeTypes = helper.nodeTypes;
 
 function integrationUpdate() {
   return (req, res) => {
-    const filesTranslations = req.body;//.filter(f => f.type === nodeTypes.FILE);
+    const crowdinApi = res.crowdinApiClient;
+    const projectId = res.origin.context.project_id;
+    var filesTranslations = req.body;//.filter(f => f.type === nodeTypes.FILE);
+    const reqBodyIds = Object.keys(req.body);
 
-    // prepare files translations object to translations array for using on map and forEach functions
-    const translations = Object.keys(filesTranslations).reduce((acc, fileId) =>
-      ([...acc, ...filesTranslations[fileId].map(lId =>
-        ({ fileId: fileId, languageId: lId })
-      )]), []
-    );
-
-    d360Instance = res.d360Instance;
-
-    prepareData(filesTranslations, translations, res)
-      .then(preparedData => {
-        // Do next for each selected translations
-        return Promise.all(translations.map((t, index) => updateIntegrationFile({ ...preparedData, t, index, res })));
+    crowdinApi.sourceFilesApi.listProjectDirectories(projectId)
+      .then(values => {
+        values.data.forEach(element => {
+          if (reqBodyIds.includes(element.data.id.toString())) {
+            delete filesTranslations[element.data.id.toString()];
+          }
+        });
       })
-      .then(responses => {
-        res.status(200).json(''); //responses.data closes the circular reference issue.
-      })
-      .catch(catchRejection('Cant upload files to integration', res));
+      .then(() => {
+        // prepare files translations object to translations array for using on map and forEach functions
+        const translations = Object.keys(filesTranslations).reduce((acc, fileId) =>
+          ([...acc, ...filesTranslations[fileId].map(lId =>
+            ({ fileId: fileId, languageId: lId })
+          )]), []
+        );
+
+        d360Instance = res.d360Instance;
+
+        prepareData(filesTranslations, translations, res)
+          .then(preparedData => {
+            // Do next for each selected translations
+            return Promise.all(translations.map((t, index) => updateIntegrationFile({ ...preparedData, t, index, res })));
+          })
+          .then(responses => {
+            res.status(200).json(''); //responses.data closes the circular reference issue.
+          })
+          .catch(catchRejection('Cant upload files to integration', res));
+      });
+
   }
 }
 
@@ -42,8 +56,6 @@ const prepareData = (filesTranslations, translations, res) => {
     let integrationFilesList = [];
     let projectVersionId = ''
     // get all campaigns list and store it on integrationFilesList
-
-
 
     integrationApiClient.get('/ProjectVersions')
       .then(function (res) {
@@ -88,9 +100,7 @@ const prepareData = (filesTranslations, translations, res) => {
           })
           .catch(e => reject(e))
       })
-
   })
-
 };
 
 const updateIntegrationFile = (params) => {
@@ -104,12 +114,10 @@ const updateIntegrationFile = (params) => {
     // We find translation for this file and this language, update it
     //return integrationApiClient.put('/Articles/' + integrationTranslationFile.id, {content:'this needs the from code'});
     if (crowdinFileName.indexOf("_content.") > 0) {
-      if(crowdinFileName.indexOf(".md") > 0)
-      {
+      if (crowdinFileName.indexOf(".md") > 0) {
         return integrationApiClient.put('/Articles/' + integrationTranslationFile.id, { content: translatedFilesData[index] })
       }
-      else if(crowdinFileName.indexOf(".html") > 0)
-      {
+      else if (crowdinFileName.indexOf(".html") > 0) {
         return integrationApiClient.put('/Articles/' + integrationTranslationFile.id, { html_content: translatedFilesData[index] })
       }
     }
