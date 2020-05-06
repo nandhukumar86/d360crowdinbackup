@@ -59,7 +59,7 @@ const prepareData = (filesTranslations, translations, res) => {
 
     integrationApiClient.get('/ProjectVersions')
       .then(function (res) {
-        projectVersionId = res.data.data[0].id;
+        projectVersionId = res.data.data.find(pv => pv.is_main_version).id;
       }).then(() => {
 
         integrationApiClient.get(`/ProjectVersions/${projectVersionId}/articles`)

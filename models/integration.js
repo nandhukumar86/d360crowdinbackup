@@ -95,7 +95,7 @@ Integration.getData = () => (req, resp) => {
 
   d360Instance.get('/ProjectVersions')
     .then(function (res) {
-      projectVersionId = res.data.data[0].id
+      projectVersionId = res.data.data.find(pv => pv.is_main_version).id;
     }
     ).then(() => {
       Promise.all(Object.keys(roots).map(t =>

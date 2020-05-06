@@ -48,8 +48,8 @@ function crowdinUpdate() {
               if (element.name != 'Project') {
                 parentFolderMapping.push({
                   folderName: element.name,
-                  folderId: folderDirectoryIDMapping.filter(t => t.folderName == `${element.name} (${element.id})`)[0].folderId,
-                  parentFolderId: folderDirectoryIDMapping.filter(t => t.folderName == `${element.parent_name} (${element.parent_id})`)[0].folderId
+                  folderId: folderDirectoryIDMapping.find(t => t.folderName == `${element.name} (${element.id})`).folderId,
+                  parentFolderId: folderDirectoryIDMapping.find(t => t.folderName == `${element.parent_name} (${element.parent_id})`).folderId
                 });
               }
             });
@@ -66,7 +66,7 @@ function crowdinUpdate() {
       })
 
     function findFolderId(folderName) {
-      return folderDirectoryIDMapping.filter(a => a.folderName == folderName)[0].folderId
+      return folderDirectoryIDMapping.find(a => a.folderName == folderName).folderId
     }
 
     // Get content for all selected integration files
