@@ -31,7 +31,7 @@ function crowdinUpdate() {
               categoryFolders.map(categoryFolder => {
                 var subCategoriesList = directories.filter(d => d.parent_id == categoryFolder.data.title);
                 subCategoriesList.forEach(subCategory => {
-                  Recursion(subCategory, categoryFolder.data.title, categoryFolder.data.id);
+                  Recursion(subCategory, categoryFolder.data.id);
                 });
               })
             })
@@ -41,8 +41,17 @@ function crowdinUpdate() {
         console.log(e)
       })
 
-    function Recursion(subCategory, parentId, folderId) {
-      console.log(`${subCategory.name} ${parentId} ${folderId}`);
+    function Recursion(subCategory, folderId) {
+
+      crowdinApi.sourceFilesApi.createDirectory(projectId, { name: subCategory.name, directoryId: folderId, title: subCategory.id })
+        .then(res => {
+          var childSubCategories = directories.filter(d => d.parent_id == res.data.title);
+          childSubCategories.forEach(childSubCategory => {
+            Recursion(childSubCategory, res.data.id);
+          });
+        })
+
+      //console.log(`${subCategory.name} ${parentId} ${folderId}`);
     }
 
 
