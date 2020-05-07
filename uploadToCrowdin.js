@@ -16,54 +16,83 @@ function crowdinUpdate() {
     let folderDirectoryIDMapping = [];
     let parentFolderMapping = [];
 
-    const directories = req.body.filter(fid => fid.node_type == nodeTypes.FOLDER);
+    const directories = req.body.filter(fid => fid.node_type == nodeTypes.FOLDER || fid.node_type == nodeTypes.BRANCH);
 
+    const parentDirectories = directories.filter(d => d.parent_id == 0)
 
-    crowdinApi.sourceFilesApi.listProjectDirectories(projectId)
-      .then(values => {
-        cloudinDirectoryNames = values.data.map(d => d.data.name);
+    //parentDirectories.foreach(element => crowdinApi.sourceFilesApi.createBranch(projectId, { name: element.name }))
 
-        values.data.forEach(element => {
-          folderDirectoryIDMapping.push({
-            folderName: element.data.name,
-            folderId: element.data.id,
-          });
-        });
-
-        Promise.all(directories.map(element => {
-          if (!cloudinDirectoryNames.includes(`${element.name} (${element.id})`)) {
-            return crowdinApi.sourceFilesApi.createDirectory(projectId, {
-              name: `${element.name} (${element.id})`,
-              directoryId: null,
-            }).then(r => {
-              folderDirectoryIDMapping.push({
-                folderName: r.data.name,
-                folderId: r.data.id,
-              });
-            })
-          }
-        }))
-          .then(resp => {
-            directories.forEach(element => {
-              if (element.name != 'Project') {
-                parentFolderMapping.push({
-                  folderName: element.name,
-                  folderId: folderDirectoryIDMapping.find(t => t.folderName == `${element.name} (${element.id})`).folderId,
-                  parentFolderId: folderDirectoryIDMapping.find(t => t.folderName == `${element.parent_name} (${element.parent_id})`).folderId
+    Promise.all(parentDirectories.map(dir => crowdinApi.sourceFilesApi.createBranch(projectId, { name: dir.name, title: dir.id })))
+      .then(branchFolders => {
+        branchFolders.map(branchFolder => {
+          var categoriesList = directories.filter(d => d.parent_id == branchFolder.data.title);
+          Promise.all(categoriesList.map(category => crowdinApi.sourceFilesApi.createDirectory(projectId, { name: category.name, branchId: branchFolder.data.id, title: category.id })))
+            .then(categoryFolders => {
+              categoryFolders.map(categoryFolder => {
+                var subCategoriesList = directories.filter(d => d.parent_id == categoryFolder.data.title);
+                subCategoriesList.forEach(subCategory => {
+                  Recursion(subCategory, categoryFolder.data.title, categoryFolder.data.id);
                 });
-              }
-            });
-
-            return Promise.all(parentFolderMapping.map(f => {
-              var array = [{
-                op: "replace",
-                path: "/directoryId",
-                value: f.parentFolderId
-              }];
-              return crowdinApi.sourceFilesApi.editDirectory(projectId, f.folderId, array)
-            }))
-          })
+              })
+            })
+        })
       })
+      .catch(e => {
+        console.log(e)
+      })
+
+    function Recursion(subCategory, parentId, folderId) {
+      console.log(`${subCategory.name} ${parentId} ${folderId}`);
+    }
+
+
+    if (false) {
+      crowdinApi.sourceFilesApi.listProjectDirectories(projectId)
+        .then(values => {
+          cloudinDirectoryNames = values.data.map(d => d.data.name);
+
+          values.data.forEach(element => {
+            folderDirectoryIDMapping.push({
+              folderName: element.data.name,
+              folderId: element.data.id,
+            });
+          });
+
+          Promise.all(directories.map(element => {
+            if (!cloudinDirectoryNames.includes(`${element.name} (${element.id})`)) {
+              return crowdinApi.sourceFilesApi.createDirectory(projectId, {
+                name: `${element.name} (${element.id})`,
+                directoryId: null,
+              }).then(r => {
+                folderDirectoryIDMapping.push({
+                  folderName: r.data.name,
+                  folderId: r.data.id,
+                });
+              })
+            }
+          }))
+            .then(resp => {
+              directories.forEach(element => {
+                if (element.name != 'Project') {
+                  parentFolderMapping.push({
+                    folderName: element.name,
+                    folderId: folderDirectoryIDMapping.find(t => t.folderName == `${element.name} (${element.id})`).folderId,
+                    parentFolderId: folderDirectoryIDMapping.find(t => t.folderName == `${element.parent_name} (${element.parent_id})`).folderId
+                  });
+                }
+              });
+
+              return Promise.all(parentFolderMapping.map(f => {
+                var array = [{
+                  op: "replace",
+                  path: "/directoryId",
+                  value: f.parentFolderId
+                }];
+                return crowdinApi.sourceFilesApi.editDirectory(projectId, f.folderId, array)
+              }))
+            })
+        })
+    }
 
     function findFolderId(folderName) {
       return folderDirectoryIDMapping.find(a => a.folderName == folderName).folderId

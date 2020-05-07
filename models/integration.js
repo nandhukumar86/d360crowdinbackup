@@ -91,7 +91,7 @@ Integration.getData = () => (req, resp) => {
           name: element.version_code_name,
           parent_id: 0,
           parent_name: element.version_code_name,
-          node_type: nodeTypes.FOLDER,
+          node_type: nodeTypes.BRANCH,
         })
 
       });
