@@ -79,37 +79,40 @@ Integration.getData = () => (req, resp) => {
 
   const d360Instance = resp.d360Instance; // Destruct integration client from response
   let files = [];
-
-  // Define root elements for integration
-  let roots = {
-    'Project': 'data',
-  };
-
-  files.push(...Object.keys(roots).map(t => ({
-    id: t,
-    name: t,
-    parent_id: 0,
-    parent_name: t,
-    node_type: nodeTypes.FOLDER,
-  })));
+  let roots = [];
 
   d360Instance.get('/ProjectVersions')
-    .then(function (res) {
-      projectVersionId = res.data.data.find(pv => pv.is_main_version).id;
-    }
-    ).then(() => {
-      Promise.all(Object.keys(roots).map(t =>
-        d360Instance.get(`/ProjectVersions/${projectVersionId}/categories`)
+    .then(result => {
+      result.data.data.forEach(element => {
+        roots[element.version_code_name] = 'data';
+
+        files.push({
+          id: element.id,
+          name: element.version_code_name,
+          parent_id: 0,
+          parent_name: element.version_code_name,
+          node_type: nodeTypes.FOLDER,
+        })
+
+      });
+
+    })
+    .then(() => {
+      Promise.all(files.filter(f => f.name == f.parent_name).map(t =>
+        d360Instance.get(`/ProjectVersions/${t.id}/categories`)
       ))
         .then(function (res) {
           res.map(c => {
             c.data.data.forEach(item => {
-              Recursion('category', item, 'Project', 'Project');
+              Recursion('category', item, item.project_version_id, files.find(f=>f.id == item.project_version_id && f.name == f.parent_name).name);
             });
           })
           resp.send(files);
         })
     })
+    .catch(e => {
+      console.log(e)
+    });
 
   function Recursion(nodetype, obj, parentId, parentName) {
 
