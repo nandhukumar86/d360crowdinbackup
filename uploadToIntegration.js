@@ -71,50 +71,53 @@ const prepareData = (filesTranslations, translations, res) => {
     let projectVersionId = ''
     // get all campaigns list and store it on integrationFilesList
 
+    
     integrationApiClient.get('/ProjectVersions')
-      .then(function (res) {
-        projectVersionId = res.data.data.find(pv => pv.is_main_version).id;
-      }).then(() => {
+    .then(res => {
+        return Promise.all(res.data.data.map(v => integrationApiClient.get(`/ProjectVersions/${v.id}/articles`)))
+    })
+    .then(versions => {
+        data = []
+        versions.forEach(version => {
+            version.data.data.forEach(article => {
+                data.push(article);
+            })
+        });
+        return data;
+    })
+    .then(articles => {
+        integrationFilesList = articles;
+        // get all selected source files from Crowdin
+        return Promise.all(Object.keys(filesTranslations).map(fId => crowdinApi.sourceFilesApi.getFile(projectId, fId)))
+    })
+    .then(responses => {
+        // Store selected files responses on filesById
+        filesById = responses.reduce((acc, fileData) => ({ ...acc, [`${fileData.data.id}`]: fileData.data }), {});
+        // Get all selected files source campaigns
+        return Promise.all(Object.values(filesById).map(f => {
+            return integrationApiClient.get(`/Articles/${ParseFileName(f.name).articleId}`)
+        }))
+    })
+    .then(integrationFiles => {
+        // Store campaigns date on object by id
+        integrationFilesById = integrationFiles.reduce((acc, fileData) => ({ ...acc, [`${fileData.id}`]: fileData }), {});
+        // For each selected translation build translation on Crowdin by file id and language
+        return Promise.all(translations.map(t =>
+            crowdinApi.translationsApi.buildProjectFileTranslation(projectId, t.fileId, { targetLanguageId: t.languageId, exportAsXliff: false })
+        ))
+    })
+    .then(responses => {
+        // Get all links for translations build, get date for each link
+        return Promise.all(responses.map(r => axios.get(r.data.url)))
+    })
+    .then(buffers => {
+        // Get array of translations content
+        const translatedFilesData = buffers.map(b => b.data);
+        resolve({ filesById, integrationFilesById, integrationFilesList, translatedFilesData })
+    })
+    .catch(e => reject(e))
 
-        integrationApiClient.get(`/ProjectVersions/${projectVersionId}/articles`)
-          .then(list => {
-            integrationFilesList = list.data.data;
-            // get all selected source files from Crowdin
-            return Promise.all(Object.keys(filesTranslations).map(fId => crowdinApi.sourceFilesApi.getFile(projectId, fId)))
-          })
-          .then(responses => {
-            // Store selected files responses on filesById
-            filesById = responses.reduce((acc, fileData) => ({ ...acc, [`${fileData.data.id}`]: fileData.data }), {});
-            // Get all selected files source campaigns
-            return Promise.all(Object.values(filesById).map(f => {
-              return integrationApiClient.get(`/Articles/${ParseFileName(f.name).articleId}`)
-              // if (f.name.indexOf(`_content.${f.type}`) > 0) {
-              //   return integrationApiClient.get(`/Articles/${f.name.replace(`_content.${f.type}`, '')}`)
-              // }
-              // else if (f.name.indexOf(`_title.${f.type}`) > 0) {
-              //   return integrationApiClient.get(`/Articles/${f.name.replace(`_title.${f.type}`, '')}`)
-              // }
-            }))
-          })
-          .then(integrationFiles => {
-            // Store campaigns date on object by id
-            integrationFilesById = integrationFiles.reduce((acc, fileData) => ({ ...acc, [`${fileData.id}`]: fileData }), {});
-            // For each selected translation build translation on Crowdin by file id and language
-            return Promise.all(translations.map(t =>
-              crowdinApi.translationsApi.buildProjectFileTranslation(projectId, t.fileId, { targetLanguageId: t.languageId, exportAsXliff: false })
-            ))
-          })
-          .then(responses => {
-            // Get all links for translations build, get date for each link
-            return Promise.all(responses.map(r => axios.get(r.data.url)))
-          })
-          .then(buffers => {
-            // Get array of translations content
-            const translatedFilesData = buffers.map(b => b.data);
-            resolve({ filesById, integrationFilesById, integrationFilesList, translatedFilesData })
-          })
-          .catch(e => reject(e))
-      })
+
   })
 };
 
