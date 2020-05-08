@@ -13,7 +13,6 @@ function crowdinUpdate() {
 
     let integrationFiles = [];
     let integrationTitles = [];
-    let folderDirectoryIDMapping = [];
     let allfolders = [];
     cloudinDirectoryNames = [];
     cloudinBranchNames = [];
@@ -26,25 +25,25 @@ function crowdinUpdate() {
         cloudinBranchNames = values[0].data;
         cloudinDirectoryNames = values[1].data;
         return Promise.all(parentDirectories.map(dir => {
-          var existingBranchId = cloudinBranchNames.find(b => b.data.title == dir.id);
+          var existingBranchId = cloudinBranchNames.find(b => ParseUniqueId(b.data.name) == dir.id);
           if (!!existingBranchId)
             return crowdinApi.sourceFilesApi.getBranch(projectId, existingBranchId.data.id)
           else
-            return crowdinApi.sourceFilesApi.createBranch(projectId, { name: dir.name, title: dir.id })
+            return crowdinApi.sourceFilesApi.createBranch(projectId, { name: `${dir.name} (${dir.id})`, title: dir.name })
         }))
           .then(branchFolders => {
             return Promise.all(branchFolders.map(branchFolder => {
-              var categoriesList = directories.filter(d => d.parent_id == branchFolder.data.title);
+              var categoriesList = directories.filter(d => d.parent_id == ParseUniqueId(branchFolder.data.name));
               return Promise.all(categoriesList.map(category => {
-                var existingDirectoryId = cloudinDirectoryNames.find(b => b.data.title == category.id);
+                var existingDirectoryId = cloudinDirectoryNames.find(b => ParseUniqueId(b.data.name) == category.id);
                 if (!!existingDirectoryId)
                   return crowdinApi.sourceFilesApi.getDirectory(projectId, existingDirectoryId.data.id)
                 else
-                  return crowdinApi.sourceFilesApi.createDirectory(projectId, { name: category.name, branchId: branchFolder.data.id, title: category.id })
+                  return crowdinApi.sourceFilesApi.createDirectory(projectId, { name: `${category.name} (${category.id})`, branchId: branchFolder.data.id, title: category.name })
               }))
                 .then(categoryFolders => {
                   return Promise.all(categoryFolders.map(categoryFolder => {
-                    var subCategoriesList = directories.filter(d => d.parent_id == categoryFolder.data.title);
+                    var subCategoriesList = directories.filter(d => d.parent_id == ParseUniqueId(categoryFolder.data.name));
                     return Promise.all(subCategoriesList.map(subCategory => Recursion(subCategory, categoryFolder.data.id)))
                   }))
                 })
@@ -67,7 +66,7 @@ function crowdinUpdate() {
                     title: fileIds[index].slug || (fileIds[index].settings || {}).name || fileIds[index].id,
                     name: fileIds[index].name,
                     ifId: `${fileIds[index].slug}_content_${fileIds[index].id}`,
-                    folderId: allfolders.find(f => f.data.title == fileIds[index].parent_id).data.id,//findFolderId(`${fileIds[index].parent_name} (${fileIds[index].parent_id})`),
+                    folderId: allfolders.find(f => ParseUniqueId(f.data.name) == fileIds[index].parent_id).data.id,//findFolderId(`${fileIds[index].parent_name} (${fileIds[index].parent_id})`),
                     filetype: fileIds[index].type
                   })
                 );
@@ -79,7 +78,7 @@ function crowdinUpdate() {
                     title: fileIds[index].slug || (fileIds[index].settings || {}).name || fileIds[index].id,
                     name: fileIds[index].name,
                     ifId: `${fileIds[index].slug}_title_${fileIds[index].id}`,
-                    folderId: allfolders.find(f => f.data.title == fileIds[index].parent_id).data.id,//findFolderId(`${fileIds[index].parent_name} (${fileIds[index].parent_id})`),
+                    folderId: allfolders.find(f => ParseUniqueId(f.data.name) == fileIds[index].parent_id).data.id,//findFolderId(`${fileIds[index].parent_name} (${fileIds[index].parent_id})`),
                     filetype: 'txt' //Considering title is always text.
                   })
                 );
@@ -177,21 +176,21 @@ function crowdinUpdate() {
 
     function Recursion(subCategory, folderId) {
       var promise = new Promise((res, rej) => {
-        var existingDirectoryId = cloudinDirectoryNames.find(b => b.data.title == subCategory.id);
+        var existingDirectoryId = cloudinDirectoryNames.find(b => ParseUniqueId(b.data.name) == subCategory.id);
         if (!!existingDirectoryId)
           return res(crowdinApi.sourceFilesApi.getDirectory(projectId, existingDirectoryId.data.id))
         else
-          return res(crowdinApi.sourceFilesApi.createDirectory(projectId, { name: subCategory.name, directoryId: folderId, title: subCategory.id }))
+          return res(crowdinApi.sourceFilesApi.createDirectory(projectId, { name: `${subCategory.name} (${subCategory.id})`, directoryId: folderId, title: subCategory.name }))
       });
       return promise.then(res => {
-        var childSubCategories = directories.filter(d => d.parent_id == res.data.title);
+        var childSubCategories = directories.filter(d => d.parent_id == ParseUniqueId(res.data.name));
         return Promise.all(childSubCategories.map(childSubCategory => Recursion(childSubCategory, res.data.id)));
       })
-
     }
 
-    function findFolderId(folderName) {
-      return folderDirectoryIDMapping.find(a => a.folderName == folderName).folderId
+    function ParseUniqueId(folderName) {
+      var items = folderName.split(' ')
+      return items[items.length - 1].replace('(','').replace(')','');
     }
   }
 }

@@ -13,8 +13,6 @@ function integrationUpdate() {
 
     Promise.all([crowdinApi.sourceFilesApi.listProjectDirectories(projectId), crowdinApi.sourceFilesApi.listProjectBranches(projectId)])
       .then(values => {
-        console.log(values);
-
         values.forEach(foldertype => {
           foldertype.data.forEach(element => {
             if (reqBodyIds.includes(element.data.id.toString())) {
