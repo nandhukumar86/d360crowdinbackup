@@ -1,7 +1,7 @@
 const isDev = (process.env.NODE_ENV || 'development') !== 'production';
 
 const baseUrl = isDev
-  ? "https://763d7f6f.ngrok.io"
+  ? "https://e49a4e41.ngrok.io"
   : "https://kovaid3603.herokuapp.com";
 
 module.exports = {

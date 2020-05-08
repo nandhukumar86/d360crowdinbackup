@@ -11,12 +11,16 @@ function integrationUpdate() {
     var filesTranslations = req.body;//.filter(f => f.type === nodeTypes.FILE);
     const reqBodyIds = Object.keys(req.body);
 
-    crowdinApi.sourceFilesApi.listProjectDirectories(projectId)
+    Promise.all([crowdinApi.sourceFilesApi.listProjectDirectories(projectId), crowdinApi.sourceFilesApi.listProjectBranches(projectId)])
       .then(values => {
-        values.data.forEach(element => {
-          if (reqBodyIds.includes(element.data.id.toString())) {
-            delete filesTranslations[element.data.id.toString()];
-          }
+        console.log(values);
+
+        values.forEach(foldertype => {
+          foldertype.data.forEach(element => {
+            if (reqBodyIds.includes(element.data.id.toString())) {
+              delete filesTranslations[element.data.id.toString()];
+            }
+          });
         });
       })
       .then(() => {
