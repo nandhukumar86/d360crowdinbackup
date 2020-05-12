@@ -48,15 +48,26 @@ function integrationUpdate() {
 module.exports = integrationUpdate;
 
 function ParseFileName(filename) {
-  var split1 = filename.split("_")
-  var split2 = split1[2].split(".")
+  if (filename.indexOf("_") > 0 && filename.indexOf(".") > 0) {
+    var split1 = filename.split("_")
+    var split2 = split1[2].split(".")
 
-  return {
-    slugName: split1[0],
-    fileTranlationType: split1[1],
-    articleId: split2[0],
-    extension: split2[1]
-  };
+    return {
+      slugName: split1[0],
+      fileTranlationType: split1[1],
+      articleId: split2[0],
+      extension: split2[1]
+    };
+  }
+  else{
+    return {
+      slugName: null,
+      fileTranlationType: null,
+      articleId: null,
+      extension: null
+    };
+  }
+
 }
 
 const prepareData = (filesTranslations, translations, res) => {
@@ -71,51 +82,51 @@ const prepareData = (filesTranslations, translations, res) => {
     let projectVersionId = ''
     // get all campaigns list and store it on integrationFilesList
 
-    
+
     integrationApiClient.get('/ProjectVersions')
-    .then(res => {
+      .then(res => {
         return Promise.all(res.data.data.map(v => integrationApiClient.get(`/ProjectVersions/${v.id}/articles`)))
-    })
-    .then(versions => {
+      })
+      .then(versions => {
         data = []
         versions.forEach(version => {
-            version.data.data.forEach(article => {
-                data.push(article);
-            })
+          version.data.data.forEach(article => {
+            data.push(article);
+          })
         });
         return data;
-    })
-    .then(articles => {
+      })
+      .then(articles => {
         integrationFilesList = articles;
         // get all selected source files from Crowdin
         return Promise.all(Object.keys(filesTranslations).map(fId => crowdinApi.sourceFilesApi.getFile(projectId, fId)))
-    })
-    .then(responses => {
+      })
+      .then(responses => {
         // Store selected files responses on filesById
         filesById = responses.reduce((acc, fileData) => ({ ...acc, [`${fileData.data.id}`]: fileData.data }), {});
         // Get all selected files source campaigns
         return Promise.all(Object.values(filesById).map(f => {
-            return integrationApiClient.get(`/Articles/${ParseFileName(f.name).articleId}`)
+          return integrationApiClient.get(`/Articles/${ParseFileName(f.name).articleId}`)
         }))
-    })
-    .then(integrationFiles => {
+      })
+      .then(integrationFiles => {
         // Store campaigns date on object by id
         integrationFilesById = integrationFiles.reduce((acc, fileData) => ({ ...acc, [`${fileData.id}`]: fileData }), {});
         // For each selected translation build translation on Crowdin by file id and language
         return Promise.all(translations.map(t =>
-            crowdinApi.translationsApi.buildProjectFileTranslation(projectId, t.fileId, { targetLanguageId: t.languageId, exportAsXliff: false })
+          crowdinApi.translationsApi.buildProjectFileTranslation(projectId, t.fileId, { targetLanguageId: t.languageId, exportAsXliff: false })
         ))
-    })
-    .then(responses => {
+      })
+      .then(responses => {
         // Get all links for translations build, get date for each link
         return Promise.all(responses.map(r => axios.get(r.data.url)))
-    })
-    .then(buffers => {
+      })
+      .then(buffers => {
         // Get array of translations content
         const translatedFilesData = buffers.map(b => b.data);
         resolve({ filesById, integrationFilesById, integrationFilesList, translatedFilesData })
-    })
-    .catch(e => reject(e))
+      })
+      .catch(e => reject(e))
 
 
   })
