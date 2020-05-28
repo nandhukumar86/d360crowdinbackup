@@ -118,7 +118,7 @@ Integration.getData = () => (req, resp) => {
 
     if (nodetype == 'article') {
       obj["node_type"] = nodeTypes.FILE;
-      obj["type"] = 'md';
+      obj["type"] = obj.content_type == 0 ? 'md' : 'html';
       obj["name"] = obj.slug || (obj.settings || {}).title || obj.id;
       obj["fid"] = obj.name;
       obj["parent_id"] = parentId;

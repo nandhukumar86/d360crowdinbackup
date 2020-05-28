@@ -149,12 +149,14 @@ const updateIntegrationFile = (params) => {
       payload["content"] = translatedFilesData[index];
     }
     else if (_obj.fileTranlationType == "content" && _obj.extension == "html") {
-      payload["html_content"] = translatedFilesData[index];
+      payload["content"] = translatedFilesData[index];
+      //payload["html_content"] = translatedFilesData[index];
     }
     else if (_obj.fileTranlationType == "title" && _obj.extension == "txt") {
       payload["title"] = translatedFilesData[index];
     }
-    return integrationApiClient.put('/Articles/' + integrationTranslationFile.id, payload);
+    //return integrationApiClient.put('/Articles/' + integrationTranslationFile.id, payload);
+    return integrationApiClient.put(`/Articles/${integrationTranslationFile.id}/${t.languageId}`, payload);
   }
   // else {
   //   // We don't find translation for this file and language
