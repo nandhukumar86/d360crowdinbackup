@@ -142,38 +142,17 @@ const updateIntegrationFile = (params) => {
 
   if (integrationTranslationFile) {
     // We find translation for this file and this language, update it
-    //return integrationApiClient.put('/Articles/' + integrationTranslationFile.id, {content:'this needs the from code'});
     var payload = {};
 
     if (_obj.fileTranlationType == "content" && _obj.extension == "md") {
       payload["content"] = translatedFilesData[index];
     }
     else if (_obj.fileTranlationType == "content" && _obj.extension == "html") {
-      payload["content"] = translatedFilesData[index];
-      //payload["html_content"] = translatedFilesData[index];
+      payload["html_content"] = translatedFilesData[index];
     }
     else if (_obj.fileTranlationType == "title" && _obj.extension == "txt") {
       payload["title"] = translatedFilesData[index];
     }
-    //return integrationApiClient.put('/Articles/' + integrationTranslationFile.id, payload);
     return integrationApiClient.put(`/Articles/${integrationTranslationFile.id}/${t.languageId}`, payload);
   }
-  // else {
-  //   // We don't find translation for this file and language
-  //   // Get origin file from integration
-  //   let originFile = integrationFilesById[filesById[t.fileId].name.replace('.html', '')];
-  //   // Prepare payload to create new campaign
-  //   let payload = {
-  //     type: originFile.type,
-  //     settings: { ...originFile.settings, template_id: undefined, title: originFile.settings.title + `/${t.languageId}` },
-  //     variate_settings: originFile.variate_settings,
-  //     tracking: originFile.tracking
-  //   };
-  //   // Create new campaign
-  //   return integrationApiClient.post('/campaigns', payload)
-  //     .then(res => {
-  //       // set current translations as campaign content
-  //       return integrationApiClient.put('/campaigns/' + res.id + '/content', { html: translatedFilesData[index] })
-  //     })
-  // }
 };
