@@ -144,6 +144,8 @@ const updateIntegrationFile = (params) => {
     // We find translation for this file and this language, update it
     var payload = {};
 
+    payload["translation_option"] = "2" //status for Translated
+
     if (_obj.fileTranlationType == "content" && _obj.extension == "md") {
       payload["content"] = translatedFilesData[index];
     }
