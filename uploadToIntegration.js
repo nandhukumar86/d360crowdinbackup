@@ -145,6 +145,7 @@ const updateIntegrationFile = (params) => {
     var payload = {};
 
     payload["translation_option"] = "2" //status for Translated
+    payload["source"] = "crowdin" //To update the Crowdin push timestamp
 
     if (_obj.fileTranlationType == "content" && _obj.extension == "md") {
       payload["content"] = translatedFilesData[index];
