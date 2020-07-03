@@ -35,6 +35,10 @@ Integration.Login = () => (req, res) => {
   const integrationUid = `${res.origin.domain}__${res.origin.context.project_id}__${res.origin.sub}`;
   Integration.findOne({ where: { uid: integrationUid } })
     .then((integration) => {
+      if(token == null || token == "")
+      {
+        return integration.destroy({ uid: integrationUid });
+      }
       let params = {
         integrationToken: encryptData(token),
         integrationApiUrl: url,

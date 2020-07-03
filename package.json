@@ -21,6 +21,7 @@
     "lodash": "^4.17.15",
     "mailchimp-api-v3": "^1.13.1",
     "passport": "^0.4.1",
+    "passport-auth-token": "^1.0.1",
     "passport-mailchimp": "^1.1.0",
     "pg": "^7.18.1",
     "pg-hstore": "^2.3.3",

@@ -1,5 +1,5 @@
 const passport = require('passport');
-const PassportStrategy = require('passport-mailchimp').Strategy;
+const PassportStrategy = require('passport-auth-token').Strategy;
 
 const keys = require('./keys');
 const helpers = require('./helpers');
@@ -24,13 +24,9 @@ passport.deserializeUser((uid, done) => {
     .catch(e => done(e, null));
 });
 
-passport.use(
+passport.use('auth-token',
   // Define passport strategy
-  new PassportStrategy({
-    clientID: keys.integrationClientId,
-    clientSecret: keys.integrationSecret,
-    callbackURL: keys.callbackUrl
-  }, (accessToken, refreshToken, profile, done) => {
+  new PassportStrategy((accessToken, refreshToken, profile, done) => {
     // Callback function after user success authentication on integration
     // Try find record with current user
     Integration.findOne({where: {uid: `${profile._json.user_id}`}})
@@ -55,8 +51,8 @@ passport.use(
   })
 );
 
-auth = () => passport.authenticate('mailchimp');
+auth = () => passport.authenticate('auth-token');
 
-middleware = () => passport.authenticate('mailchimp', {failureRedirect: '/integration-login'});
+middleware = () => passport.authenticate('auth-token', {failureRedirect: '/integration-login'});
 
 module.exports = {auth, middleware};
