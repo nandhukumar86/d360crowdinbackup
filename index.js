@@ -4,6 +4,9 @@ const passport = require('passport');
 const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
 
+const dotenv = require('dotenv');
+dotenv.config();
+
 const keys = require('./keys');
 const db = require('./db_connect');
 const config = require('./config');
