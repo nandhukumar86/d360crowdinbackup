@@ -20,10 +20,10 @@ const Integration = db.define('integration', {
     unique: true,
   },
   integrationToken: {
-    type: Sequelize.STRING(10000),
+    type: Sequelize.STRING(4000),
   },
   integrationApiUrl: {
-    type: Sequelize.STRING(10000),
+    type: Sequelize.STRING(4000),
   }
 });
 

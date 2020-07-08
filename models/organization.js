@@ -20,11 +20,11 @@ const Organization = db.define('organization', {
     unique: true,
   },
   accessToken: {
-    type: Sequelize.STRING(10000),
+    type: Sequelize.STRING(4000),
     allowNull: false,
   },
   refreshToken: {
-    type: Sequelize.STRING(10000),
+    type: Sequelize.STRING(4000),
     allowNull: false,
   },
   expire: {
